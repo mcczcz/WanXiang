@@ -4,6 +4,7 @@
 #include "I18n/I18n.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "mod/AutoFishing.h"
+#include "mod/TrustedSkin.h"
 #include "mod/XpOrbMerge.h"
 #include <filesystem>
 
@@ -47,12 +48,18 @@ bool Entry::load() {
 bool Entry::enable() {
     getSelf().getLogger().debug("Enabling...");
 
+    if (!trusted_skin::enable()) {
+        logger.error(tr("trusted_skin.enable_failed"));
+        return false;
+    }
     if (!auto_fishing::enable()) {
+        trusted_skin::disable();
         logger.error(tr("auto_fishing.enable_failed"));
         return false;
     }
     if (!xp_orb_merge::enable()) {
         auto_fishing::disable();
+        trusted_skin::disable();
         logger.error(tr("xp_orb_merge.enable_failed"));
         return false;
     }
@@ -65,6 +72,7 @@ bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
     xp_orb_merge::disable();
     auto_fishing::disable();
+    trusted_skin::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
 }
@@ -73,6 +81,7 @@ bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
     xp_orb_merge::disable();
     auto_fishing::disable();
+    trusted_skin::disable();
     return true;
 }
 

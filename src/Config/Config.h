@@ -15,6 +15,7 @@ struct Config {
     int              version           = 1;
     ll::io::LogLevel logLevel          = ll::io::LogLevel::Info;
     std::string      language          = "en_US";
+    bool             trustedSkinEnable = true;
     bool             autoFishingEnable = true;
     XpOrbMergeConfig xpOrbMerge{};
 };
