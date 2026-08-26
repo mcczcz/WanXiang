@@ -4,6 +4,7 @@
 #include "I18n/I18n.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "mod/AutoFishing.h"
+#include "mod/XpOrbMerge.h"
 #include <filesystem>
 
 namespace my_mod {
@@ -50,6 +51,11 @@ bool Entry::enable() {
         logger.error(tr("auto_fishing.enable_failed"));
         return false;
     }
+    if (!xp_orb_merge::enable()) {
+        auto_fishing::disable();
+        logger.error(tr("xp_orb_merge.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -57,6 +63,7 @@ bool Entry::enable() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    xp_orb_merge::disable();
     auto_fishing::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
@@ -64,10 +71,10 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    xp_orb_merge::disable();
     auto_fishing::disable();
     return true;
-
-} 
+}
 
 LL_REGISTER_MOD(my_mod::Entry, my_mod::Entry::getInstance());
-}
+} // namespace my_mod
