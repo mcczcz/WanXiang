@@ -24,5 +24,6 @@
     "event.unregistered": "已注销事件监听: {}",
     "event.register_failed": "注册事件监听失败: {}",
     "example.player_join_log": "[示例] 玩家加入: {}",
-    "example.player_join_welcome": "[示例] 欢迎来到服务器，{}！"
+    "example.player_join_welcome": "[示例] 欢迎来到服务器，{}！",
+    "auto_fishing.enable_failed": "自动钓鱼 Hook 注册失败。"
 }

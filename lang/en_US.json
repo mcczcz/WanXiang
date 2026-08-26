@@ -24,5 +24,6 @@
     "event.unregistered": "Unregistered event listener: {}",
     "event.register_failed": "Failed to register event listener: {}",
     "example.player_join_log": "[Example] Player joined: {}",
-    "example.player_join_welcome": "[Example] Welcome to the server, {}!"
+    "example.player_join_welcome": "[Example] Welcome to the server, {}!",
+    "auto_fishing.enable_failed": "Failed to register the auto-fishing hook."
 }

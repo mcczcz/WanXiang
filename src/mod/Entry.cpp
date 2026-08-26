@@ -3,6 +3,7 @@
 #include "Config/ConfigManager.h"
 #include "I18n/I18n.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include "mod/AutoFishing.h"
 #include <filesystem>
 
 namespace my_mod {
@@ -45,18 +46,25 @@ bool Entry::load() {
 bool Entry::enable() {
     getSelf().getLogger().debug("Enabling...");
 
+    if (!auto_fishing::enable()) {
+        logger.error(tr("auto_fishing.enable_failed"));
+        return false;
+    }
+
     logger.info(tr("plugin.enabled"));
     return true;
 }
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    auto_fishing::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
 }
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    auto_fishing::disable();
     return true;
 
 } 

@@ -2,14 +2,12 @@ add_rules("mode.debug", "mode.release")
 set_toolchains("clang-cl")
 
 add_repositories("levimc-repo https://github.com/LiteLDev/xmake-repo.git")
+add_repositories("yyz-repo https://github.com/yangyangzhong82/xmake-repo.git")
 
--- add_requires("levilamina x.x.x") for a specific version
--- add_requires("levilamina develop") to use develop version
--- please note that you should add bdslibrary yourself if using dev version
 if is_config("target_type", "server") then
-    add_requires("levilamina 26.20.0", {configs = {target_type = "server"}})
+    add_requires("levilamina 26.20.7", {configs = {target_type = "server"}})
 else
-    add_requires("levilamina", {configs = {target_type = "client"}})
+    add_requires("levilamina 26.20.7", {configs = {target_type = "client"}})
 end
 
 add_requires("levibuildscript")
@@ -24,7 +22,7 @@ option("target_type")
     set_values("server", "client")
 option_end()
 
-target("my-mod") 
+target("WanXiang") 
     add_rules("@levibuildscript/linkrule")
     add_rules("@levibuildscript/modpacker")
     if is_plat("windows") then
