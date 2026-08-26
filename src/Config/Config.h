@@ -19,15 +19,21 @@ struct MobEffectBlockerConfig {
     bool windCharged = false;
 };
 
+struct FastLeafDecayConfig {
+    bool enable = true;
+    int  radius = 8;
+};
+
 struct Config {
-    int                    version           = 2;
-    ll::io::LogLevel       logLevel          = ll::io::LogLevel::Info;
-    std::string            language          = "en_US";
-    bool                   trustedSkinEnable = true;
-    bool                   autoFishingEnable = true;
+    int                    version              = 4;
+    ll::io::LogLevel       logLevel             = ll::io::LogLevel::Info;
+    std::string            language             = "en_US";
+    bool                   trustedSkinEnable    = true;
+    bool                   autoFishingEnable    = true;
     bool                   abilityCommandEnable = true;
     XpOrbMergeConfig       xpOrbMerge{};
     MobEffectBlockerConfig mobEffectBlocker{};
+    FastLeafDecayConfig    fastLeafDecay{};
 };
 
 } // namespace my_mod

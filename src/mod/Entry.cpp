@@ -5,6 +5,7 @@
 #include "ll/api/mod/RegisterHelper.h"
 #include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
+#include "mod/FastLeafDecay.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/TrustedSkin.h"
 #include "mod/XpOrbMerge.h"
@@ -77,6 +78,14 @@ bool Entry::enable() {
         logger.error(tr("mob_effect_blocker.enable_failed"));
         return false;
     }
+    if (!fast_leaf_decay::enable()) {
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        logger.error(tr("fast_leaf_decay.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -84,6 +93,7 @@ bool Entry::enable() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    fast_leaf_decay::disable();
     mob_effect_blocker::disable();
     xp_orb_merge::disable();
     auto_fishing::disable();
@@ -95,6 +105,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    fast_leaf_decay::disable();
     mob_effect_blocker::disable();
     xp_orb_merge::disable();
     auto_fishing::disable();

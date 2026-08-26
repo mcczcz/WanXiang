@@ -31,5 +31,6 @@
     "ability_command.registered": "已强制注册原版 ability 命令。",
     "ability_command.register_failed": "原版 ability 命令注册后未出现在命令表中。",
     "mob_effect_blocker.enable_failed": "状态效果禁用 Hook 注册失败。",
-    "xp_orb_merge.enable_failed": "经验球合并事件注册失败。"
+    "xp_orb_merge.enable_failed": "经验球合并事件注册失败。",
+    "fast_leaf_decay.enable_failed": "树叶快速腐烂 Hook 注册失败。"
 }

@@ -31,5 +31,6 @@
     "ability_command.registered": "Force-registered the vanilla ability command.",
     "ability_command.register_failed": "The vanilla ability command is absent after registration.",
     "mob_effect_blocker.enable_failed": "Failed to register the mob-effect blocker hook.",
-    "xp_orb_merge.enable_failed": "Failed to register the XP orb merge event."
+    "xp_orb_merge.enable_failed": "Failed to register the XP orb merge event.",
+    "fast_leaf_decay.enable_failed": "Failed to register the fast leaf decay hook."
 }
