@@ -25,6 +25,7 @@ struct Config {
     std::string            language          = "en_US";
     bool                   trustedSkinEnable = true;
     bool                   autoFishingEnable = true;
+    bool                   abilityCommandEnable = true;
     XpOrbMergeConfig       xpOrbMerge{};
     MobEffectBlockerConfig mobEffectBlocker{};
 };

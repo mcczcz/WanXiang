@@ -27,6 +27,9 @@
     "example.player_join_welcome": "[Example] Welcome to the server, {}!",
     "trusted_skin.enable_failed": "Failed to register the trusted-skin hook.",
     "auto_fishing.enable_failed": "Failed to register the auto-fishing hook.",
+    "ability_command.enable_failed": "Failed to register the vanilla ability command hook.",
+    "ability_command.registered": "Force-registered the vanilla ability command.",
+    "ability_command.register_failed": "The vanilla ability command is absent after registration.",
     "mob_effect_blocker.enable_failed": "Failed to register the mob-effect blocker hook.",
     "xp_orb_merge.enable_failed": "Failed to register the XP orb merge event."
 }

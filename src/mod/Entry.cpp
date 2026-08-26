@@ -3,6 +3,7 @@
 #include "Config/ConfigManager.h"
 #include "I18n/I18n.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/TrustedSkin.h"
@@ -41,6 +42,11 @@ bool Entry::load() {
 
     // 根据配置更新语言
     I18n::getInstance().setLanguage(config.language);
+
+    if (!ability_command::enable()) {
+        logger.error(tr("ability_command.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.loaded"));
     return true;
@@ -82,6 +88,7 @@ bool Entry::disable() {
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
+    ability_command::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
 }
@@ -92,6 +99,7 @@ bool Entry::unload() {
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
+    ability_command::disable();
     return true;
 }
 
