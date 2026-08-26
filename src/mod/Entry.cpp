@@ -4,6 +4,7 @@
 #include "I18n/I18n.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "mod/AutoFishing.h"
+#include "mod/MobEffectBlocker.h"
 #include "mod/TrustedSkin.h"
 #include "mod/XpOrbMerge.h"
 #include <filesystem>
@@ -63,6 +64,13 @@ bool Entry::enable() {
         logger.error(tr("xp_orb_merge.enable_failed"));
         return false;
     }
+    if (!mob_effect_blocker::enable()) {
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        logger.error(tr("mob_effect_blocker.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -70,6 +78,7 @@ bool Entry::enable() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    mob_effect_blocker::disable();
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
@@ -79,6 +88,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    mob_effect_blocker::disable();
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();

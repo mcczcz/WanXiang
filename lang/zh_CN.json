@@ -27,5 +27,6 @@
     "example.player_join_welcome": "[示例] 欢迎来到服务器，{}！",
     "trusted_skin.enable_failed": "可信任皮肤 Hook 注册失败。",
     "auto_fishing.enable_failed": "自动钓鱼 Hook 注册失败。",
+    "mob_effect_blocker.enable_failed": "状态效果禁用 Hook 注册失败。",
     "xp_orb_merge.enable_failed": "经验球合并事件注册失败。"
 }
