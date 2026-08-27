@@ -25,8 +25,12 @@ ll::event::ListenerPtr multipleListener;
 thread_local bool      resendingSanitizedPacket = false;
 
 UpdateAbilitiesPacket const* getOperatorAbilitiesPacket(Packet const& packet) {
-    auto const* abilitiesPacket = dynamic_cast<UpdateAbilitiesPacket const*>(&packet);
-    if (abilitiesPacket == nullptr || abilitiesPacket->mData->mPlayerPermissions != PlayerPermissionLevel::Operator) {
+    if (packet.getId() != MinecraftPacketIds::UpdateAbilitiesPacket) {
+        return nullptr;
+    }
+
+    auto const* abilitiesPacket = static_cast<UpdateAbilitiesPacket const*>(&packet);
+    if (abilitiesPacket->mData->mPlayerPermissions != PlayerPermissionLevel::Operator) {
         return nullptr;
     }
     return abilitiesPacket;

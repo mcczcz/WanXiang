@@ -36,8 +36,18 @@ struct ScheduledCommandsConfig {
     std::vector<ScheduledCommandTaskConfig> tasks{};
 };
 
+struct ServerPongConfig {
+    bool        enable               = false;
+    bool        motdEnable           = false;
+    std::string motd                 = {};
+    bool        playerCountEnable    = false;
+    int         playerCount          = 0;
+    bool        maxPlayerCountEnable = false;
+    int         maxPlayerCount       = 0;
+};
+
 struct Config {
-    int                     version                  = 9;
+    int                     version                  = 10;
     ll::io::LogLevel        logLevel                 = ll::io::LogLevel::Info;
     std::string             language                 = "en_US";
     bool                    trustedSkinEnable        = true;
@@ -49,6 +59,7 @@ struct Config {
     MobEffectBlockerConfig  mobEffectBlocker{};
     FastLeafDecayConfig     fastLeafDecay{};
     ScheduledCommandsConfig scheduledCommands{};
+    ServerPongConfig        serverPong{};
     bool                    markPacksAsAddon          = true;
     bool                    forceResourcePackRequired = false;
 };

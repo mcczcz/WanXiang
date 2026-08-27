@@ -38,6 +38,7 @@
     "clean_unknown_blocks.cleaned": "已清理 {} 个未知方块（区块：{}, {}）。",
     "hide_op_permission.enable_failed": "隐藏 OP 权限显示事件注册失败。",
     "scheduled_command.enable_failed": "定时命令事件注册失败。",
+    "server_pong.enable_failed": "服务器列表信息伪造事件注册失败。",
     "scheduled_command.registered": "已注册 {} 个定时命令。",
     "scheduled_command.empty_command": "已跳过命令内容为空的定时任务。",
     "scheduled_command.invalid_cron": "Cron 表达式无效：{}（命令：{}）：{}",

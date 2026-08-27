@@ -57,6 +57,7 @@ When new top-level fields are added in code, missing keys are appended automatic
 - `logLevel`: logger level
 - `language`: active locale, e.g. `en_US`, `zh_CN`
 - `scheduledCommands`: Cron-based server command tasks
+- `serverPong`: Customize the server list MOTD and displayed player counts
 - `markPacksAsAddon`: marks server packs as add-ons so client and server packs can be combined (enabled by default)
 - `forceResourcePackRequired`: requires clients to download server packs (disabled by default)
 
@@ -74,6 +75,22 @@ Cron expressions use six fields: second, minute, hour, day of month, month, and 
             "outputToConsole": true
         }
     ]
+}
+```
+
+`serverPong` is disabled by default. Set `enable` to `true`, then enable each
+field you want to override with `motdEnable`, `playerCountEnable`, or
+`maxPlayerCountEnable`. Disabled fields keep the values supplied by the server.
+
+```json
+"serverPong": {
+    "enable": true,
+    "motdEnable": true,
+    "motd": "My server",
+    "playerCountEnable": true,
+    "playerCount": 42,
+    "maxPlayerCountEnable": true,
+    "maxPlayerCount": 100
 }
 ```
 
