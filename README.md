@@ -56,8 +56,22 @@ When new top-level fields are added in code, missing keys are appended automatic
 - `version`: config version
 - `logLevel`: logger level
 - `language`: active locale, e.g. `en_US`, `zh_CN`
-- `exampleJoinMessageEnable`: example join message switch (default `false`)
-- `exampleJoinLogEnable`: example join log switch (default `false`)
+- `scheduledCommands`: Cron-based server command tasks
+
+Cron expressions use six fields: second, minute, hour, day of month, month, and day of week. Commands run with owner permission. Set `outputToConsole` to `false` to suppress their command output.
+
+```json
+"scheduledCommands": {
+    "enable": true,
+    "tasks": [
+        {
+            "cron": "0 */5 * * * *",
+            "command": "list",
+            "outputToConsole": true
+        }
+    ]
+}
+```
 
 ## Extend This Template
 

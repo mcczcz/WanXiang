@@ -32,5 +32,11 @@
     "ability_command.register_failed": "The vanilla ability command is absent after registration.",
     "mob_effect_blocker.enable_failed": "Failed to register the mob-effect blocker hook.",
     "xp_orb_merge.enable_failed": "Failed to register the XP orb merge event.",
-    "fast_leaf_decay.enable_failed": "Failed to register the fast leaf decay hook."
+    "fast_leaf_decay.enable_failed": "Failed to register the fast leaf decay hook.",
+    "scheduled_command.enable_failed": "Failed to register the scheduled-command event.",
+    "scheduled_command.registered": "Registered {} scheduled command(s).",
+    "scheduled_command.empty_command": "Skipped a scheduled task with an empty command.",
+    "scheduled_command.invalid_cron": "Invalid Cron expression: {} (command: {}): {}",
+    "scheduled_command.no_valid_tasks": "Scheduled commands are enabled, but no valid tasks are configured.",
+    "scheduled_command.minecraft_unavailable": "Cannot run scheduled command because the Minecraft command service is unavailable: {}"
 }

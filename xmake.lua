@@ -11,6 +11,7 @@ else
 end
 
 add_requires("levibuildscript")
+add_requires("croncpp v2023.03.30")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -44,7 +45,7 @@ target("WanXiang")
         )
         set_toolchains("clang-cl")
     end
-    add_packages("levilamina")
+    add_packages("levilamina", "croncpp")
 
     set_kind("shared")
     set_languages("c++20")

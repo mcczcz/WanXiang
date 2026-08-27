@@ -7,6 +7,7 @@
 #include "mod/AutoFishing.h"
 #include "mod/FastLeafDecay.h"
 #include "mod/MobEffectBlocker.h"
+#include "mod/ScheduledCommand.h"
 #include "mod/TrustedSkin.h"
 #include "mod/XpOrbMerge.h"
 #include <filesystem>
@@ -86,6 +87,15 @@ bool Entry::enable() {
         logger.error(tr("fast_leaf_decay.enable_failed"));
         return false;
     }
+    if (!scheduled_command::enable()) {
+        fast_leaf_decay::disable();
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        logger.error(tr("scheduled_command.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -93,6 +103,7 @@ bool Entry::enable() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    scheduled_command::disable();
     fast_leaf_decay::disable();
     mob_effect_blocker::disable();
     xp_orb_merge::disable();
@@ -105,6 +116,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    scheduled_command::disable();
     fast_leaf_decay::disable();
     mob_effect_blocker::disable();
     xp_orb_merge::disable();
