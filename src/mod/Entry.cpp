@@ -5,6 +5,7 @@
 #include "ll/api/mod/RegisterHelper.h"
 #include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
+#include "mod/CleanUnknownBlocks.h"
 #include "mod/FastLeafDecay.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/ResourcePackOverlay.h"
@@ -97,7 +98,18 @@ bool Entry::enable() {
         logger.error(tr("fast_leaf_decay.enable_failed"));
         return false;
     }
+    if (!clean_unknown_blocks::enable()) {
+        fast_leaf_decay::disable();
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        resource_pack_overlay::disable();
+        logger.error(tr("clean_unknown_blocks.enable_failed"));
+        return false;
+    }
     if (!scheduled_command::enable()) {
+        clean_unknown_blocks::disable();
         fast_leaf_decay::disable();
         mob_effect_blocker::disable();
         xp_orb_merge::disable();
@@ -115,6 +127,7 @@ bool Entry::enable() {
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
     scheduled_command::disable();
+    clean_unknown_blocks::disable();
     fast_leaf_decay::disable();
     mob_effect_blocker::disable();
     xp_orb_merge::disable();
@@ -129,6 +142,7 @@ bool Entry::disable() {
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
     scheduled_command::disable();
+    clean_unknown_blocks::disable();
     fast_leaf_decay::disable();
     mob_effect_blocker::disable();
     xp_orb_merge::disable();

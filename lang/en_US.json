@@ -34,6 +34,8 @@
     "mob_effect_blocker.enable_failed": "Failed to register the mob-effect blocker hook.",
     "xp_orb_merge.enable_failed": "Failed to register the XP orb merge event.",
     "fast_leaf_decay.enable_failed": "Failed to register the fast leaf decay hook.",
+    "clean_unknown_blocks.enable_failed": "Failed to register the unknown-block cleanup hook.",
+    "clean_unknown_blocks.cleaned": "Cleaned {} unknown block(s) in chunk ({}, {}).",
     "scheduled_command.enable_failed": "Failed to register the scheduled-command event.",
     "scheduled_command.registered": "Registered {} scheduled command(s).",
     "scheduled_command.empty_command": "Skipped a scheduled task with an empty command.",

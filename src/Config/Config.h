@@ -37,12 +37,13 @@ struct ScheduledCommandsConfig {
 };
 
 struct Config {
-    int                     version              = 6;
-    ll::io::LogLevel        logLevel             = ll::io::LogLevel::Info;
-    std::string             language             = "en_US";
-    bool                    trustedSkinEnable    = true;
-    bool                    autoFishingEnable    = true;
-    bool                    abilityCommandEnable = true;
+    int                     version                  = 7;
+    ll::io::LogLevel        logLevel                 = ll::io::LogLevel::Info;
+    std::string             language                 = "en_US";
+    bool                    trustedSkinEnable        = true;
+    bool                    autoFishingEnable        = true;
+    bool                    abilityCommandEnable     = true;
+    bool                    cleanUnknownBlocksEnable = true;
     XpOrbMergeConfig        xpOrbMerge{};
     MobEffectBlockerConfig  mobEffectBlocker{};
     FastLeafDecayConfig     fastLeafDecay{};
