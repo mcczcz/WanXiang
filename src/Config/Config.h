@@ -37,6 +37,16 @@ struct ScheduledCommandsConfig {
     std::vector<ScheduledCommandTaskConfig> tasks{};
 };
 
+struct CommandPermissionRuleConfig {
+    std::string command         = {};
+    std::string permissionLevel = "Any";
+};
+
+struct CommandPermissionsConfig {
+    bool                                     enable = false;
+    std::vector<CommandPermissionRuleConfig> rules{};
+};
+
 struct ServerPongConfig {
     bool        enable               = false;
     bool        motdEnable           = false;
@@ -70,22 +80,23 @@ struct ExplosionControlConfig {
 };
 
 struct Config {
-    int                     version                  = 12;
-    ll::io::LogLevel        logLevel                 = ll::io::LogLevel::Info;
-    std::string             language                 = "en_US";
-    bool                    trustedSkinEnable        = true;
-    bool                    autoFishingEnable        = true;
-    bool                    abilityCommandEnable     = true;
-    bool                    cleanUnknownBlocksEnable = true;
-    bool                    hideOpPermissionEnable   = true;
-    XpOrbMergeConfig        xpOrbMerge{};
-    MobEffectBlockerConfig  mobEffectBlocker{};
-    FastLeafDecayConfig     fastLeafDecay{};
-    ScheduledCommandsConfig scheduledCommands{};
-    ServerPongConfig        serverPong{};
-    ExplosionControlConfig  explosionControl{};
-    bool                    markPacksAsAddon          = true;
-    bool                    forceResourcePackRequired = false;
+    int                      version                  = 13;
+    ll::io::LogLevel         logLevel                 = ll::io::LogLevel::Info;
+    std::string              language                 = "en_US";
+    bool                     trustedSkinEnable        = true;
+    bool                     autoFishingEnable        = true;
+    bool                     abilityCommandEnable     = true;
+    bool                     cleanUnknownBlocksEnable = true;
+    bool                     hideOpPermissionEnable   = true;
+    XpOrbMergeConfig         xpOrbMerge{};
+    MobEffectBlockerConfig   mobEffectBlocker{};
+    FastLeafDecayConfig      fastLeafDecay{};
+    ScheduledCommandsConfig  scheduledCommands{};
+    CommandPermissionsConfig commandPermissions{};
+    ServerPongConfig         serverPong{};
+    ExplosionControlConfig   explosionControl{};
+    bool                     markPacksAsAddon          = true;
+    bool                     forceResourcePackRequired = false;
 };
 
 } // namespace my_mod

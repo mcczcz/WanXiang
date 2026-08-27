@@ -57,6 +57,7 @@ When new top-level fields are added in code, missing keys are appended automatic
 - `logLevel`: logger level
 - `language`: active locale, e.g. `en_US`, `zh_CN`
 - `scheduledCommands`: Cron-based server command tasks
+- `commandPermissions`: Override command permission levels while commands are registered
 - `serverPong`: Customize the server list MOTD and displayed player counts
 - `markPacksAsAddon`: marks server packs as add-ons so client and server packs can be combined (enabled by default)
 - `forceResourcePackRequired`: requires clients to download server packs (disabled by default)
@@ -73,6 +74,26 @@ Cron expressions use six fields: second, minute, hour, day of month, month, and 
             "cron": "0 */5 * * * *",
             "command": "list",
             "outputToConsole": true
+        }
+    ]
+}
+```
+
+`commandPermissions` hooks command registration and replaces the permission level
+for matching command names. Command names may optionally start with `/`. Permission
+levels are `Any`, `GameDirectors`, `Admin`, `Host`, `Owner`, and `Internal`.
+
+```json
+"commandPermissions": {
+    "enable": true,
+    "rules": [
+        {
+            "command": "gamemode",
+            "permissionLevel": "Any"
+        },
+        {
+            "command": "ability",
+            "permissionLevel": "Admin"
         }
     ]
 }

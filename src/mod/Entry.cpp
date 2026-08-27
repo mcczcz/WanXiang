@@ -6,6 +6,7 @@
 #include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
 #include "mod/CleanUnknownBlocks.h"
+#include "mod/CommandPermission.h"
 #include "mod/ExplosionControl.h"
 #include "mod/FastLeafDecay.h"
 #include "mod/HideOpPermission.h"
@@ -50,7 +51,13 @@ bool Entry::load() {
     // 根据配置更新语言
     I18n::getInstance().setLanguage(config.language);
 
+    if (!command_permission::enable()) {
+        logger.error(tr("command_permission.enable_failed"));
+        return false;
+    }
+
     if (!ability_command::enable()) {
+        command_permission::disable();
         logger.error(tr("ability_command.enable_failed"));
         return false;
     }
@@ -180,6 +187,7 @@ bool Entry::disable() {
     trusted_skin::disable();
     resource_pack_overlay::disable();
     ability_command::disable();
+    command_permission::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
 }
@@ -198,6 +206,7 @@ bool Entry::unload() {
     trusted_skin::disable();
     resource_pack_overlay::disable();
     ability_command::disable();
+    command_permission::disable();
     return true;
 }
 
