@@ -88,7 +88,7 @@ bool isSupportedByLog(BlockSource& region, BlockPos const& start) {
     visited.insert(start);
 
     for (std::size_t index = 0; index < queue.size(); ++index) {
-        auto const& current = queue[index];
+        SearchNode const current = queue[index];
         for (BlockPos const& offset : NeighborOffsets) {
             BlockPos const neighbor{
                 current.pos.x + offset.x,
