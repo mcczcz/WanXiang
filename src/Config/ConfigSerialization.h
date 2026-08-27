@@ -19,6 +19,75 @@
 
 namespace nlohmann {
 
+template <>
+struct adl_serializer<my_mod::ExplosionRuleConfig> {
+private:
+    template <typename T>
+    static void writeOptional(json& j, char const* name, std::optional<T> const& value) {
+        if (value.has_value()) {
+            j[name] = *value;
+        }
+    }
+
+    template <typename T>
+    static void readOptional(
+        json const&       j,
+        char const*       name,
+        char const*       legacyOverrideName,
+        std::optional<T>& value
+    ) {
+        auto const legacyOverride = j.find(legacyOverrideName);
+        if (legacyOverride != j.end() && !legacyOverride->template get<bool>()) {
+            value.reset();
+            return;
+        }
+
+        auto const entry = j.find(name);
+        if (entry == j.end() || entry->is_null()) {
+            value.reset();
+            return;
+        }
+        value = entry->template get<T>();
+    }
+
+public:
+    static void to_json(json& j, my_mod::ExplosionRuleConfig const& value) {
+        j = json{{"sourceType", value.sourceType}, {"cancel", value.cancel}};
+        writeOptional(j, "radius", value.radius);
+        writeOptional(j, "fire", value.fire);
+        writeOptional(j, "breaking", value.breaking);
+        writeOptional(j, "allowUnderwater", value.allowUnderwater);
+        writeOptional(j, "canToggleBlocks", value.canToggleBlocks);
+        writeOptional(j, "damageScaling", value.damageScaling);
+        writeOptional(j, "ignoreBlockResistance", value.ignoreBlockResistance);
+        writeOptional(j, "maxResistance", value.maxResistance);
+        writeOptional(j, "inWater", value.inWater);
+        writeOptional(j, "totalDamage", value.totalDamage);
+        writeOptional(j, "knockbackScaling", value.knockbackScaling);
+    }
+
+    static void from_json(json const& j, my_mod::ExplosionRuleConfig& value) {
+        value.sourceType = j.value("sourceType", "minecraft:tnt");
+        value.cancel     = j.value("cancel", false);
+        readOptional(j, "radius", "overrideRadius", value.radius);
+        readOptional(j, "fire", "overrideFire", value.fire);
+        readOptional(j, "breaking", "overrideBreaking", value.breaking);
+        readOptional(j, "allowUnderwater", "overrideAllowUnderwater", value.allowUnderwater);
+        readOptional(j, "canToggleBlocks", "overrideCanToggleBlocks", value.canToggleBlocks);
+        readOptional(j, "damageScaling", "overrideDamageScaling", value.damageScaling);
+        readOptional(
+            j,
+            "ignoreBlockResistance",
+            "overrideIgnoreBlockResistance",
+            value.ignoreBlockResistance
+        );
+        readOptional(j, "maxResistance", "overrideMaxResistance", value.maxResistance);
+        readOptional(j, "inWater", "overrideInWater", value.inWater);
+        readOptional(j, "totalDamage", "overrideTotalDamage", value.totalDamage);
+        readOptional(j, "knockbackScaling", "overrideKnockbackScaling", value.knockbackScaling);
+    }
+};
+
 // 通用序列化模板，适用于所有聚合类型 (C++17 或更高版本)
 template <typename T>
     requires std::is_aggregate_v<T>

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ll/api/io/LogLevel.h"
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -46,8 +47,30 @@ struct ServerPongConfig {
     int         maxPlayerCount       = 0;
 };
 
+struct ExplosionRuleConfig {
+    std::string sourceType = "minecraft:tnt";
+    bool        cancel     = false;
+
+    std::optional<float> radius{};
+    std::optional<bool>  fire{};
+    std::optional<bool>  breaking{};
+    std::optional<bool>  allowUnderwater{};
+    std::optional<bool>  canToggleBlocks{};
+    std::optional<float> damageScaling{};
+    std::optional<bool>  ignoreBlockResistance{};
+    std::optional<float> maxResistance{};
+    std::optional<bool>  inWater{};
+    std::optional<int>   totalDamage{};
+    std::optional<float> knockbackScaling{};
+};
+
+struct ExplosionControlConfig {
+    bool                             enable = false;
+    std::vector<ExplosionRuleConfig> rules{};
+};
+
 struct Config {
-    int                     version                  = 10;
+    int                     version                  = 12;
     ll::io::LogLevel        logLevel                 = ll::io::LogLevel::Info;
     std::string             language                 = "en_US";
     bool                    trustedSkinEnable        = true;
@@ -60,6 +83,7 @@ struct Config {
     FastLeafDecayConfig     fastLeafDecay{};
     ScheduledCommandsConfig scheduledCommands{};
     ServerPongConfig        serverPong{};
+    ExplosionControlConfig  explosionControl{};
     bool                    markPacksAsAddon          = true;
     bool                    forceResourcePackRequired = false;
 };

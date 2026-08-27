@@ -6,6 +6,7 @@
 #include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
 #include "mod/CleanUnknownBlocks.h"
+#include "mod/ExplosionControl.h"
 #include "mod/FastLeafDecay.h"
 #include "mod/HideOpPermission.h"
 #include "mod/MobEffectBlocker.h"
@@ -146,6 +147,20 @@ bool Entry::enable() {
         logger.error(tr("server_pong.enable_failed"));
         return false;
     }
+    if (!explosion_control::enable()) {
+        server_pong::disable();
+        scheduled_command::disable();
+        hide_op_permission::disable();
+        clean_unknown_blocks::disable();
+        fast_leaf_decay::disable();
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        resource_pack_overlay::disable();
+        logger.error("Failed to enable explosion control");
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -153,6 +168,7 @@ bool Entry::enable() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    explosion_control::disable();
     scheduled_command::disable();
     server_pong::disable();
     hide_op_permission::disable();
@@ -170,6 +186,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    explosion_control::disable();
     scheduled_command::disable();
     server_pong::disable();
     hide_op_permission::disable();
