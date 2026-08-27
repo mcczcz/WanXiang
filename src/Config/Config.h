@@ -37,7 +37,7 @@ struct ScheduledCommandsConfig {
 };
 
 struct Config {
-    int                     version              = 5;
+    int                     version              = 6;
     ll::io::LogLevel        logLevel             = ll::io::LogLevel::Info;
     std::string             language             = "en_US";
     bool                    trustedSkinEnable    = true;
@@ -47,6 +47,8 @@ struct Config {
     MobEffectBlockerConfig  mobEffectBlocker{};
     FastLeafDecayConfig     fastLeafDecay{};
     ScheduledCommandsConfig scheduledCommands{};
+    bool                    markPacksAsAddon          = true;
+    bool                    forceResourcePackRequired = false;
 };
 
 } // namespace my_mod

@@ -7,6 +7,7 @@
 #include "mod/AutoFishing.h"
 #include "mod/FastLeafDecay.h"
 #include "mod/MobEffectBlocker.h"
+#include "mod/ResourcePackOverlay.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/TrustedSkin.h"
 #include "mod/XpOrbMerge.h"
@@ -57,18 +58,25 @@ bool Entry::load() {
 bool Entry::enable() {
     getSelf().getLogger().debug("Enabling...");
 
+    if (!resource_pack_overlay::enable()) {
+        logger.error(tr("resource_pack_overlay.enable_failed"));
+        return false;
+    }
     if (!trusted_skin::enable()) {
+        resource_pack_overlay::disable();
         logger.error(tr("trusted_skin.enable_failed"));
         return false;
     }
     if (!auto_fishing::enable()) {
         trusted_skin::disable();
+        resource_pack_overlay::disable();
         logger.error(tr("auto_fishing.enable_failed"));
         return false;
     }
     if (!xp_orb_merge::enable()) {
         auto_fishing::disable();
         trusted_skin::disable();
+        resource_pack_overlay::disable();
         logger.error(tr("xp_orb_merge.enable_failed"));
         return false;
     }
@@ -76,6 +84,7 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
+        resource_pack_overlay::disable();
         logger.error(tr("mob_effect_blocker.enable_failed"));
         return false;
     }
@@ -84,6 +93,7 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
+        resource_pack_overlay::disable();
         logger.error(tr("fast_leaf_decay.enable_failed"));
         return false;
     }
@@ -93,6 +103,7 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
+        resource_pack_overlay::disable();
         logger.error(tr("scheduled_command.enable_failed"));
         return false;
     }
@@ -109,6 +120,7 @@ bool Entry::disable() {
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
+    resource_pack_overlay::disable();
     ability_command::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
@@ -122,6 +134,7 @@ bool Entry::unload() {
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
+    resource_pack_overlay::disable();
     ability_command::disable();
     return true;
 }
