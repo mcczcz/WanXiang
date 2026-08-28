@@ -12,9 +12,58 @@
 #include <nlohmann/json.hpp>
 
 #include <boost/pfr.hpp>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility> // for std::index_sequence
+#include <vector>
+
+
+namespace my_mod::detail {
+
+// Per-field deserialization failures, drained by ConfigManager::load once parsing finishes.
+//
+// The serializer below lives in namespace nlohmann and is pulled in by Config.h consumers, so it
+// cannot reach for the mod logger without a circular include. Buffering the messages here keeps
+// the header free of that dependency.
+inline std::vector<std::string>& configFieldErrors() {
+    static std::vector<std::string> errors;
+    return errors;
+}
+
+// Opt-in list for the generic aggregate serializer defined below.
+//
+// The serializer is a *partial* specialization of nlohmann::adl_serializer. Constraining it on
+// std::is_aggregate_v alone would hijack JSON serialization for every aggregate in the whole
+// program -- std::array, MC/LeviLamina structs, anything a future header happens to drag in --
+// silently overriding more correct handling. Listing our own types keeps the blast radius at
+// exactly the config tree.
+//
+// Adding a struct to Config.h without listing it here is a compile error at its first use, not a
+// silent fallback, so this cannot rot quietly.
+template <typename T>
+inline constexpr bool kIsSerializableConfig = false;
+
+#define WANXIANG_SERIALIZABLE_CONFIG(TYPE)                                                                             \
+    template <>                                                                                                        \
+    inline constexpr bool kIsSerializableConfig<TYPE> = true
+
+// ExplosionRuleConfig is deliberately absent: it has a hand-written full specialization below
+// that handles its std::optional members.
+WANXIANG_SERIALIZABLE_CONFIG(XpOrbMergeConfig);
+WANXIANG_SERIALIZABLE_CONFIG(MobEffectBlockerConfig);
+WANXIANG_SERIALIZABLE_CONFIG(FastLeafDecayConfig);
+WANXIANG_SERIALIZABLE_CONFIG(ScheduledCommandTaskConfig);
+WANXIANG_SERIALIZABLE_CONFIG(ScheduledCommandsConfig);
+WANXIANG_SERIALIZABLE_CONFIG(CommandPermissionRuleConfig);
+WANXIANG_SERIALIZABLE_CONFIG(CommandPermissionsConfig);
+WANXIANG_SERIALIZABLE_CONFIG(ServerPongConfig);
+WANXIANG_SERIALIZABLE_CONFIG(ExplosionControlConfig);
+WANXIANG_SERIALIZABLE_CONFIG(Config);
+
+#undef WANXIANG_SERIALIZABLE_CONFIG
+
+} // namespace my_mod::detail
 
 
 namespace nlohmann {
@@ -88,9 +137,9 @@ public:
     }
 };
 
-// 通用序列化模板，适用于所有聚合类型 (C++17 或更高版本)
+// 通用序列化模板，适用于 my_mod::detail 中显式登记的配置聚合类型
 template <typename T>
-    requires std::is_aggregate_v<T>
+    requires std::is_aggregate_v<T> && my_mod::detail::kIsSerializableConfig<T>
 struct adl_serializer<T> {
     /**
      * @brief 将聚合类型 T 序列化为 JSON 对象。
@@ -110,9 +159,14 @@ struct adl_serializer<T> {
 
     /**
      * @brief 从 JSON 对象反序列化为聚合类型 T。
+     *
+     * 单个字段解析失败只影响该字段：记录一条错误、回退到默认值，其余字段照常读取。
+     * 早先的实现让异常一路抛到 ConfigManager::load，一个手滑的类型错误
+     * （例如 "radius": "8"）就会导致整个插件加载失败。
      */
     static void from_json(const json& j, T& value) {
-        const T        default_value{};
+        // 函数内静态：只构造一次，避免每次反序列化都重建整棵默认配置。
+        static const T default_value{};
         constexpr auto field_count = boost::pfr::tuple_size_v<T>;
 
         // 同样使用编译时展开技术
@@ -121,12 +175,20 @@ struct adl_serializer<T> {
                  // 获取编译时成员名称
                  constexpr std::string_view name = boost::pfr::get_name<I, T>();
 
-                 if (j.contains(name)) {
-                     // 从 JSON 中获取值并赋给对应成员
-                     j.at(name).get_to(boost::pfr::get<I>(value));
-                 } else {
-                     // 从默认构造的对象中获取默认值
+                 // find 一次即可，contains + at 是两次哈希查找。
+                 const auto found = j.find(name);
+                 if (found == j.end() || found->is_null()) {
                      boost::pfr::get<I>(value) = boost::pfr::get<I>(default_value);
+                     return;
+                 }
+
+                 try {
+                     found->get_to(boost::pfr::get<I>(value));
+                 } catch (const json::exception& e) {
+                     boost::pfr::get<I>(value) = boost::pfr::get<I>(default_value);
+                     my_mod::detail::configFieldErrors().emplace_back(
+                         std::string{name} + ": " + e.what()
+                     );
                  }
              }()),
              ...); // 立即调用内部 lambda

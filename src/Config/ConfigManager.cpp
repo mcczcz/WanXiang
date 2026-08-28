@@ -1,190 +1,79 @@
 #include "ConfigManager.h"
 #include "ConfigSerialization.h"
+#include "ConfigTextPatch.h"
 #include "I18n/I18n.h"
 #include "mod/Entry.h"
-#include "mod/Global.h"
+
+#include <filesystem>
 #include <fstream>
-#include <functional>
-#include <nlohmann/json.hpp>
-#include <optional>
-#include <string_view>
-#include <utility>
+#include <iterator>
+#include <string>
+#include <system_error>
 #include <vector>
+
+#include <nlohmann/json.hpp>
 
 namespace my_mod {
 
 namespace {
 
-struct RootObjectRange {
-    size_t openBrace;
-    size_t closeBrace;
+struct MissingEntry {
+    std::vector<std::string> path;
+    nlohmann::json           value;
 };
 
-std::optional<RootObjectRange> findRootObjectRange(std::string_view text) {
-    enum class ParseState {
-        Normal,
-        String,
-        LineComment,
-        BlockComment
-    };
-
-    ParseState state   = ParseState::Normal;
-    bool       escaped = false;
-    int        depth   = 0;
-    size_t     openPos = std::string_view::npos;
-
-    for (size_t i = 0; i < text.size(); ++i) {
-        const char ch   = text[i];
-        const char next = i + 1 < text.size() ? text[i + 1] : '\0';
-
-        switch (state) {
-        case ParseState::Normal:
-            if (ch == '"') {
-                state = ParseState::String;
-                escaped = false;
-                continue;
-            }
-            if (ch == '/' && next == '/') {
-                state = ParseState::LineComment;
-                ++i;
-                continue;
-            }
-            if (ch == '/' && next == '*') {
-                state = ParseState::BlockComment;
-                ++i;
-                continue;
-            }
-            if (ch == '{') {
-                if (depth == 0) {
-                    openPos = i;
-                }
-                ++depth;
-                continue;
-            }
-            if (ch == '}') {
-                if (depth <= 0) {
-                    return std::nullopt;
-                }
-                --depth;
-                if (depth == 0) {
-                    if (openPos == std::string_view::npos) {
-                        return std::nullopt;
-                    }
-                    return RootObjectRange{openPos, i};
-                }
-            }
-            break;
-        case ParseState::String:
-            if (escaped) {
-                escaped = false;
-                continue;
-            }
-            if (ch == '\\') {
-                escaped = true;
-                continue;
-            }
-            if (ch == '"') {
-                state = ParseState::Normal;
-            }
-            break;
-        case ParseState::LineComment:
-            if (ch == '\n') {
-                state = ParseState::Normal;
-            }
-            break;
-        case ParseState::BlockComment:
-            if (ch == '*' && next == '/') {
-                state = ParseState::Normal;
-                ++i;
-            }
-            break;
+std::string joinPath(std::vector<std::string> const& path) {
+    std::string joined;
+    for (std::string const& segment : path) {
+        if (!joined.empty()) {
+            joined += '.';
         }
+        joined += segment;
     }
-    return std::nullopt;
+    return joined;
 }
 
-std::string detectLineEnding(std::string_view text) {
-    return text.find("\r\n") != std::string_view::npos ? "\r\n" : "\n";
-}
-
-std::string detectIndent(std::string_view text, size_t openBracePos, size_t closeBracePos) {
-    size_t lineStart = openBracePos + 1;
-    while (lineStart < closeBracePos) {
-        size_t lineEnd = text.find('\n', lineStart);
-        if (lineEnd == std::string_view::npos || lineEnd > closeBracePos) {
-            lineEnd = closeBracePos;
-        }
-
-        auto line = text.substr(lineStart, lineEnd - lineStart);
-        size_t i  = 0;
-        while (i < line.size() && (line[i] == ' ' || line[i] == '\t')) {
-            ++i;
-        }
-        if (i < line.size() && line[i] == '"') {
-            return std::string(line.substr(0, i));
-        }
-
-        if (lineEnd == closeBracePos) {
-            break;
-        }
-        lineStart = lineEnd + 1;
-    }
-    return "    ";
-}
-
-bool appendMissingTopLevelKeysPreserveComments(
-    std::string const&                                   path,
-    std::vector<std::pair<std::string, nlohmann::json>> missingEntries,
-    bool                                                 hasExistingMembers
+void collectMissingKeys(
+    nlohmann::json const&      defaults,
+    nlohmann::json const&      user,
+    std::vector<std::string>&  prefix,
+    std::vector<MissingEntry>& out
 ) {
-    if (missingEntries.empty()) {
-        return true;
-    }
+    for (auto const& item : defaults.items()) {
+        const auto found = user.find(item.key());
+        prefix.push_back(item.key());
 
+        if (found == user.end()) {
+            // 整棵子树一起补，不再往下递归。
+            out.push_back({prefix, item.value()});
+        } else if (item.value().is_object() && found->is_object()) {
+            collectMissingKeys(item.value(), *found, prefix, out);
+        }
+
+        prefix.pop_back();
+    }
+}
+
+// 把缺失键写回用户配置。任一环节失败都保持原文件不动。
+bool patchMissingKeys(std::filesystem::path const& path, std::vector<MissingEntry> const& missing) {
     std::ifstream in(path, std::ios::binary);
     if (!in.is_open()) {
         return false;
     }
-    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    const std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     in.close();
 
-    auto range = findRootObjectRange(content);
-    if (!range.has_value()) {
+    std::vector<config_text::PendingInsert> inserts;
+    inserts.reserve(missing.size());
+    for (MissingEntry const& entry : missing) {
+        inserts.push_back({entry.path, entry.value.dump()});
+    }
+
+    const auto patched = config_text::applyInserts(content, inserts);
+    if (!patched.has_value()) {
         return false;
     }
-
-    const std::string lineEnding = detectLineEnding(content);
-    const std::string indent     = detectIndent(content, range->openBrace, range->closeBrace);
-
-    std::string patch;
-    if (hasExistingMembers) {
-        patch += ",";
-        patch += lineEnding;
-    } else {
-        patch += lineEnding;
-    }
-
-    for (size_t i = 0; i < missingEntries.size(); ++i) {
-        auto& [key, value] = missingEntries[i];
-        patch += indent;
-        patch += "\"";
-        patch += key;
-        patch += "\": ";
-        patch += value.dump();
-        if (i + 1 < missingEntries.size()) {
-            patch += ",";
-        }
-        patch += lineEnding;
-    }
-
-    content.insert(range->closeBrace, patch);
-
-    std::ofstream out(path, std::ios::binary | std::ios::trunc);
-    if (!out.is_open()) {
-        return false;
-    }
-    out.write(content.data(), static_cast<std::streamsize>(content.size()));
-    return out.good();
+    return config_text::writeFileAtomically(path, *patched);
 }
 
 } // namespace
@@ -200,89 +89,91 @@ ConfigManager::~ConfigManager() = default;
 
 bool ConfigManager::load(const std::string& path) {
     mConfigPath = path;
-    std::ifstream file(path);
+
+    auto& modLogger = Entry::getInstance().getSelf().getLogger();
+
+    std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
         // 文件不存在，创建默认配置
-        logger.info(tr("config.not_found", path));
+        modLogger.info(tr("config.not_found", path));
         return save();
     }
 
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    const std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
 
-    nlohmann::json user_json;
+    nlohmann::json userJson;
+    detail::configFieldErrors().clear();
     try {
         // 解析用户配置，允许注释
-        user_json = nlohmann::json::parse(content, nullptr, true, true);
-        // 填充内存中的配置对象。缺失的键将从结构体定义中获取默认值。
-        *mConfig = user_json.get<Config>();
+        userJson = nlohmann::json::parse(content, nullptr, true, true);
     } catch (const nlohmann::json::exception& e) {
-        logger.error(tr("config.parse_error", e.what()));
+        modLogger.error(tr("config.parse_error", e.what()));
         return false;
     }
 
-    // 检查缺失的键以警告用户。
-    nlohmann::json default_json = Config{}; // 创建一个默认配置对象并转换为json
+    if (!userJson.is_object()) {
+        modLogger.error(tr("config.not_an_object"));
+        return false;
+    }
 
-    // 递归函数查找缺失的键
-    std::function<void(const nlohmann::json&, const nlohmann::json&, std::string, std::vector<std::string>&)>
-        find_missing_keys =
-            [&](const nlohmann::json& d, const nlohmann::json& u, std::string p, std::vector<std::string>& m) {
-                for (const auto& item : d.items()) {
-                    if (!u.contains(item.key())) {
-                        m.push_back(p + item.key());
-                    } else if (item.value().is_object() && u.at(item.key()).is_object()) {
-                        find_missing_keys(item.value(), u.at(item.key()), p + item.key() + ".", m);
-                    }
-                }
-            };
+    // 填充内存中的配置对象。缺失或类型不符的键会回退到结构体定义里的默认值。
+    userJson.get_to(*mConfig);
 
-    std::vector<std::string> missing_keys;
-    find_missing_keys(default_json, user_json, "", missing_keys);
+    for (std::string const& fieldError : detail::configFieldErrors()) {
+        modLogger.warn(tr("config.field_error", fieldError));
+    }
+    detail::configFieldErrors().clear();
 
-    if (!missing_keys.empty()) {
-        auto& modLogger = Entry::getInstance().getSelf().getLogger();
+    const nlohmann::json defaultJson = Config{};
+
+    std::vector<std::string>  prefix;
+    std::vector<MissingEntry> missing;
+    collectMissingKeys(defaultJson, userJson, prefix, missing);
+
+    if (!missing.empty()) {
         modLogger.warn(tr("config.missing_keys"));
         modLogger.warn(tr("config.missing_keys_hint"));
-        for (const auto& key : missing_keys) {
-            modLogger.warn(tr("config.missing_key_item", key));
+        for (MissingEntry const& entry : missing) {
+            modLogger.warn(tr("config.missing_key_item", joinPath(entry.path)));
         }
-        modLogger.warn(tr("config.regenerate_hint"));
 
-        // 仅补齐顶层缺失键，按文本补丁方式写回，保留原注释和已有项顺序。
-        std::vector<std::pair<std::string, nlohmann::json>> missing_top_level_entries;
-        for (const auto& [key, value] : default_json.items()) {
-            if (!user_json.contains(key)) {
-                missing_top_level_entries.emplace_back(key, value);
-            }
-        }
-        if (!missing_top_level_entries.empty()) {
-            if (appendMissingTopLevelKeysPreserveComments(path, missing_top_level_entries, !user_json.empty())) {
-                modLogger.info(tr("config.updated_missing_keys", missing_top_level_entries.size()));
-            } else {
-                modLogger.warn(tr("config.update_missing_keys_failed"));
-            }
+        if (patchMissingKeys(path, missing)) {
+            modLogger.info(tr("config.updated_missing_keys", missing.size()));
+        } else {
+            modLogger.warn(tr("config.update_missing_keys_failed"));
+            modLogger.warn(tr("config.regenerate_hint"));
         }
     }
-    auto& modLogger = Entry::getInstance().getSelf().getLogger();
+
     modLogger.setLevel(mConfig->logLevel);
 
-    return true; // 不再保存，以保留用户文件的格式和注释
+    return true; // 不再整体重写，以保留用户文件的格式和注释
 }
 
 bool ConfigManager::save() {
+    auto& modLogger = Entry::getInstance().getSelf().getLogger();
+
+    std::string serialized;
     try {
-        nlohmann::json json = *mConfig;
-        std::ofstream  file(mConfigPath);
-        file << json.dump(4);
+        serialized = nlohmann::json(*mConfig).dump(4);
     } catch (const nlohmann::json::exception& e) {
-        Entry::getInstance().getSelf().getLogger().error(tr("config.save_error", e.what()));
+        modLogger.error(tr("config.save_error", e.what()));
+        return false;
+    }
+
+    const std::filesystem::path target(mConfigPath);
+    if (target.has_parent_path()) {
+        std::error_code ec;
+        std::filesystem::create_directories(target.parent_path(), ec);
+    }
+
+    if (!config_text::writeFileAtomically(target, serialized)) {
+        modLogger.error(tr("config.save_io_error", mConfigPath));
         return false;
     }
     return true;
 }
-
-
 
 Config& ConfigManager::get() { return *mConfig; }
 
