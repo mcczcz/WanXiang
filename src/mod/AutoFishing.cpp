@@ -36,10 +36,13 @@ LL_TYPE_INSTANCE_HOOK(
         return result;
     }
 
-    auto& item = const_cast<ItemStack&>(player->getSelectedItem());
-    player->getGameMode().baseUseItem(item);
-    if (!item.isNull()) {
-        player->getGameMode().baseUseItem(item);
+    GameMode& gameMode = player->getGameMode();
+    gameMode.baseUseItem(const_cast<ItemStack&>(player->getSelectedItem()));
+
+
+    auto& recast = const_cast<ItemStack&>(player->getSelectedItem());
+    if (!recast.isNull()) {
+        gameMode.baseUseItem(recast);
     }
     return result;
 }
