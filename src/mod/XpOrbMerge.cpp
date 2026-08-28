@@ -17,8 +17,11 @@
 #include "mc/world/level/dimension/DimensionType.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <unordered_map>
 #include <vector>
@@ -48,49 +51,123 @@ bool setXp(Actor& orb, std::int64_t value) {
     return true;
 }
 
-void mergeGroup(std::vector<Actor*>& orbs, float radiusSquared) {
-    std::vector<bool> consumed(orbs.size(), false);
+// A single orb's state, snapshotted once so the merge loop never repeats the virtual
+// getPosition()/getXp() calls per comparison.
+struct OrbEntry {
+    Actor* actor;
+    Vec3   position;
+    int    xp;
+};
 
-    for (std::size_t i = 0; i < orbs.size(); ++i) {
-        Actor* keeper = orbs[i];
-        if (consumed[i] || keeper == nullptr || keeper->isRemoved()) {
+using CellKey = std::array<std::int64_t, 3>;
+
+struct CellKeyHash {
+    std::size_t operator()(CellKey const& key) const noexcept {
+        std::size_t seed = 0;
+        for (std::int64_t const value : key) {
+            seed ^= std::hash<std::int64_t>{}(value) + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
+        }
+        return seed;
+    }
+};
+
+CellKey cellOf(Vec3 const& position, float cellSize) {
+    return {
+        static_cast<std::int64_t>(std::floor(position.x / cellSize)),
+        static_cast<std::int64_t>(std::floor(position.y / cellSize)),
+        static_cast<std::int64_t>(std::floor(position.z / cellSize)),
+    };
+}
+
+// Merges every orb within `radius` of a keeper. Orbs are bucketed into a uniform grid of
+// cell size `radius`, so any partner is guaranteed to sit in one of the 27 neighbouring cells
+// and each orb is compared against a bounded local neighbourhood instead of the whole
+// dimension. This turns the old O(n^2) sweep -- 2M iterations for a 2000-orb grinder -- into
+// roughly linear work.
+void mergeGroup(std::vector<Actor*> const& orbs, float radius, float radiusSquared) {
+    std::vector<OrbEntry> entries;
+    entries.reserve(orbs.size());
+    for (Actor* orb : orbs) {
+        if (orb == nullptr || orb->isRemoved()) {
+            continue;
+        }
+        Vec3 const position = orb->getPosition();
+        // A non-finite coordinate would make the cell index computation undefined.
+        if (!std::isfinite(position.x) || !std::isfinite(position.y) || !std::isfinite(position.z)) {
+            continue;
+        }
+        entries.emplace_back(OrbEntry{orb, position, getXp(*orb)});
+    }
+    if (entries.size() < 2) {
+        return;
+    }
+
+    float const cellSize = std::max(radius, 1.0e-3F);
+
+    std::unordered_map<CellKey, std::vector<std::uint32_t>, CellKeyHash> grid;
+    grid.reserve(entries.size());
+    for (std::uint32_t index = 0; index < entries.size(); ++index) {
+        grid[cellOf(entries[index].position, cellSize)].emplace_back(index);
+    }
+
+    std::vector<std::uint8_t>  consumed(entries.size(), 0);
+    std::vector<std::uint32_t> merged;
+
+    for (std::uint32_t i = 0; i < entries.size(); ++i) {
+        if (consumed[i] != 0) {
             continue;
         }
 
-        Vec3 const keeperPosition = keeper->getPosition();
-        Vec3       positionSum{
-            keeperPosition.x,
-            keeperPosition.y,
-            keeperPosition.z,
-        };
-        std::int64_t        totalXp = getXp(*keeper);
-        std::size_t         orbCount{1};
-        std::vector<Actor*> toRemove;
+        OrbEntry const& keeper = entries[i];
+        Vec3            positionSum{keeper.position.x, keeper.position.y, keeper.position.z};
+        std::int64_t    totalXp = keeper.xp;
+        std::size_t     orbCount{1};
+        merged.clear();
 
-        for (std::size_t j = i + 1; j < orbs.size(); ++j) {
-            Actor* candidate = orbs[j];
-            if (consumed[j] || candidate == nullptr || candidate->isRemoved()) {
-                continue;
+        CellKey const base = cellOf(keeper.position, cellSize);
+        for (std::int64_t dx = -1; dx <= 1; ++dx) {
+            for (std::int64_t dy = -1; dy <= 1; ++dy) {
+                for (std::int64_t dz = -1; dz <= 1; ++dz) {
+                    auto const cell = grid.find(CellKey{base[0] + dx, base[1] + dy, base[2] + dz});
+                    if (cell == grid.end()) {
+                        continue;
+                    }
+
+                    for (std::uint32_t const j : cell->second) {
+                        if (j == i || consumed[j] != 0) {
+                            continue;
+                        }
+
+                        OrbEntry const& candidate = entries[j];
+                        float const     ddx       = keeper.position.x - candidate.position.x;
+                        float const     ddy       = keeper.position.y - candidate.position.y;
+                        float const     ddz       = keeper.position.z - candidate.position.z;
+                        if ((ddx * ddx) + (ddy * ddy) + (ddz * ddz) > radiusSquared) {
+                            continue;
+                        }
+
+                        positionSum.x += candidate.position.x;
+                        positionSum.y += candidate.position.y;
+                        positionSum.z += candidate.position.z;
+                        totalXp       += candidate.xp;
+                        ++orbCount;
+                        consumed[j] = 1;
+                        merged.emplace_back(j);
+                    }
+                }
             }
-
-            Vec3 const  candidatePosition = candidate->getPosition();
-            float const dx                = keeperPosition.x - candidatePosition.x;
-            float const dy                = keeperPosition.y - candidatePosition.y;
-            float const dz                = keeperPosition.z - candidatePosition.z;
-            if (dx * dx + dy * dy + dz * dz > radiusSquared) {
-                continue;
-            }
-
-            positionSum.x += candidatePosition.x;
-            positionSum.y += candidatePosition.y;
-            positionSum.z += candidatePosition.z;
-            totalXp       += getXp(*candidate);
-            ++orbCount;
-            consumed[j] = true;
-            toRemove.emplace_back(candidate);
         }
 
-        if (toRemove.empty()) {
+        if (merged.empty()) {
+            continue;
+        }
+
+        if (!setXp(*keeper.actor, totalXp)) {
+            // Release the partners again -- leaving them consumed would silently delete their
+            // XP along with them, since nothing below will remove or re-merge them.
+            for (std::uint32_t const j : merged) {
+                consumed[j] = 0;
+            }
             continue;
         }
 
@@ -100,15 +177,10 @@ void mergeGroup(std::vector<Actor*>& orbs, float radiusSquared) {
             positionSum.y * inverseCount,
             positionSum.z * inverseCount,
         };
+        keeper.actor->teleport(center, keeper.actor->getDimensionId());
 
-        if (!setXp(*keeper, totalXp)) {
-            continue;
-        }
-
-        keeper->teleport(center, keeper->getDimensionId());
-
-        for (Actor* candidate : toRemove) {
-            candidate->remove();
+        for (std::uint32_t const j : merged) {
+            entries[j].actor->remove();
         }
     }
 }
@@ -128,9 +200,9 @@ void mergeAll(Level& level) {
     }
 
     float const radiusSquared = mergeConfig.radius * mergeConfig.radius;
-    for (auto& [dimension, orbs] : groups) {
+    for (auto const& [dimension, orbs] : groups) {
         (void)dimension;
-        mergeGroup(orbs, radiusSquared);
+        mergeGroup(orbs, mergeConfig.radius, radiusSquared);
     }
 }
 
