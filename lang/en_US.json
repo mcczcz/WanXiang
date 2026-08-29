@@ -47,6 +47,7 @@
     "hide_op_permission.enable_failed": "Failed to register the hidden-OP-permission event.",
     "scheduled_command.enable_failed": "Failed to register the scheduled-command event.",
     "server_pong.enable_failed": "Failed to register the server-list spoofing event.",
+    "client_level_name.enable_failed": "Failed to register the client world-name hook.",
     "scheduled_command.registered": "Registered {} scheduled command(s).",
     "scheduled_command.empty_command": "Skipped a scheduled task with an empty command.",
     "scheduled_command.invalid_cron": "Invalid Cron expression: {} (command: {}): {}",

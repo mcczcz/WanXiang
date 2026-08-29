@@ -57,6 +57,11 @@ struct ServerPongConfig {
     int         maxPlayerCount       = 0;
 };
 
+struct ClientLevelNameConfig {
+    bool        enable = false;
+    std::string name   = {};
+};
+
 struct ExplosionRuleConfig {
     std::string sourceType = "minecraft:tnt";
     bool        cancel     = false;
@@ -80,7 +85,7 @@ struct ExplosionControlConfig {
 };
 
 struct Config {
-    int                      version                  = 13;
+    int                      version                  = 14;
     ll::io::LogLevel         logLevel                 = ll::io::LogLevel::Info;
     std::string              language                 = "en_US";
     bool                     trustedSkinEnable        = true;
@@ -94,6 +99,7 @@ struct Config {
     ScheduledCommandsConfig  scheduledCommands{};
     CommandPermissionsConfig commandPermissions{};
     ServerPongConfig         serverPong{};
+    ClientLevelNameConfig    clientLevelName{};
     ExplosionControlConfig   explosionControl{};
     bool                     markPacksAsAddon          = true;
     bool                     forceResourcePackRequired = false;
