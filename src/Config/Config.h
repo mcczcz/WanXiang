@@ -33,6 +33,15 @@ struct FastLeafDecayConfig {
     int  radius = 8;
 };
 
+struct UnloadedEntitiesCleanerConfig {
+    bool                     enable                      = true;
+    std::vector<std::string> entityTypeNamesToClean      = {};
+    bool                     logCleanedEntityTypeCounts  = true;
+    bool                     logSkippedEntityTypeCounts  = true;
+    bool                     writeCleanupResultToTextLog = false;
+    std::string              cleanupResultTextLogFile    = "cleanup-result.log";
+};
+
 struct ScheduledCommandTaskConfig {
     std::string cron            = "0 */5 * * * *";
     std::string command         = "list";
@@ -92,25 +101,26 @@ struct ExplosionControlConfig {
 };
 
 struct Config {
-    int                       version                  = 15;
-    ll::io::LogLevel          logLevel                 = ll::io::LogLevel::Info;
-    std::string               language                 = "en_US";
-    bool                      trustedSkinEnable        = true;
-    bool                      autoFishingEnable        = true;
-    bool                      abilityCommandEnable     = true;
-    bool                      cleanUnknownBlocksEnable = true;
-    bool                      hideOpPermissionEnable   = true;
-    DroppedItemLifetimeConfig droppedItemLifetime{};
-    XpOrbMergeConfig          xpOrbMerge{};
-    MobEffectBlockerConfig    mobEffectBlocker{};
-    FastLeafDecayConfig       fastLeafDecay{};
-    ScheduledCommandsConfig   scheduledCommands{};
-    CommandPermissionsConfig  commandPermissions{};
-    ServerPongConfig          serverPong{};
-    ClientLevelNameConfig     clientLevelName{};
-    ExplosionControlConfig    explosionControl{};
-    bool                      markPacksAsAddon          = true;
-    bool                      forceResourcePackRequired = false;
+    int                           version                  = 16;
+    ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
+    std::string                   language                 = "en_US";
+    bool                          trustedSkinEnable        = true;
+    bool                          autoFishingEnable        = true;
+    bool                          abilityCommandEnable     = true;
+    bool                          cleanUnknownBlocksEnable = true;
+    bool                          hideOpPermissionEnable   = true;
+    DroppedItemLifetimeConfig     droppedItemLifetime{};
+    XpOrbMergeConfig              xpOrbMerge{};
+    MobEffectBlockerConfig        mobEffectBlocker{};
+    FastLeafDecayConfig           fastLeafDecay{};
+    UnloadedEntitiesCleanerConfig unloadedEntitiesCleaner{};
+    ScheduledCommandsConfig       scheduledCommands{};
+    CommandPermissionsConfig      commandPermissions{};
+    ServerPongConfig              serverPong{};
+    ClientLevelNameConfig         clientLevelName{};
+    ExplosionControlConfig        explosionControl{};
+    bool                          markPacksAsAddon          = true;
+    bool                          forceResourcePackRequired = false;
 };
 
 } // namespace my_mod

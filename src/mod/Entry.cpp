@@ -17,6 +17,7 @@
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
 #include "mod/TrustedSkin.h"
+#include "mod/UnloadedEntitiesCleaner.h"
 #include "mod/XpOrbMerge.h"
 #include <filesystem>
 
@@ -120,7 +121,19 @@ bool Entry::enable() {
         logger.error(tr("clean_unknown_blocks.enable_failed"));
         return false;
     }
+    if (!unloaded_entities_cleaner::enable()) {
+        clean_unknown_blocks::disable();
+        fast_leaf_decay::disable();
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        resource_pack_overlay::disable();
+        logger.error(tr("unloaded_entities_cleaner.enable_failed"));
+        return false;
+    }
     if (!hide_op_permission::enable()) {
+        unloaded_entities_cleaner::disable();
         clean_unknown_blocks::disable();
         fast_leaf_decay::disable();
         mob_effect_blocker::disable();
@@ -132,6 +145,7 @@ bool Entry::enable() {
         return false;
     }
     if (!scheduled_command::enable()) {
+        unloaded_entities_cleaner::disable();
         hide_op_permission::disable();
         clean_unknown_blocks::disable();
         fast_leaf_decay::disable();
@@ -144,6 +158,7 @@ bool Entry::enable() {
         return false;
     }
     if (!server_pong::enable()) {
+        unloaded_entities_cleaner::disable();
         scheduled_command::disable();
         hide_op_permission::disable();
         clean_unknown_blocks::disable();
@@ -157,6 +172,7 @@ bool Entry::enable() {
         return false;
     }
     if (!explosion_control::enable()) {
+        unloaded_entities_cleaner::disable();
         server_pong::disable();
         scheduled_command::disable();
         hide_op_permission::disable();
@@ -171,6 +187,7 @@ bool Entry::enable() {
         return false;
     }
     if (!client_level_name::enable()) {
+        unloaded_entities_cleaner::disable();
         explosion_control::disable();
         server_pong::disable();
         scheduled_command::disable();
@@ -186,6 +203,7 @@ bool Entry::enable() {
         return false;
     }
     if (!dropped_item_lifetime::enable()) {
+        unloaded_entities_cleaner::disable();
         client_level_name::disable();
         explosion_control::disable();
         server_pong::disable();
@@ -209,6 +227,7 @@ bool Entry::enable() {
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
     dropped_item_lifetime::disable();
+    unloaded_entities_cleaner::disable();
     client_level_name::disable();
     explosion_control::disable();
     scheduled_command::disable();
@@ -230,6 +249,7 @@ bool Entry::disable() {
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
     dropped_item_lifetime::disable();
+    unloaded_entities_cleaner::disable();
     client_level_name::disable();
     explosion_control::disable();
     scheduled_command::disable();
