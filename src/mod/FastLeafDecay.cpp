@@ -4,346 +4,226 @@
 
 #include "mod/Global.h"
 
-#include "ll/api/event/EventBus.h"
-#include "ll/api/event/ListenerBase.h"
-#include "ll/api/event/world/ServerLevelTickEvent.h"
+#include "ll/api/coro/Executor.h"
+#include "ll/api/data/CancellableCallback.h"
 #include "ll/api/memory/Hook.h"
+#include "ll/api/thread/ServerThreadExecutor.h"
 #include "mc/deps/game_refs/WeakRef.h"
+#include "mc/util/Random.h"
 #include "mc/world/level/BlockPos.h"
 #include "mc/world/level/BlockSource.h"
-#include "mc/world/level/Level.h"
 #include "mc/world/level/block/Block.h"
-#include "mc/world/level/block/BlockChangeContext.h"
 #include "mc/world/level/block/BlockProperty.h"
 #include "mc/world/level/block/LeavesBlock.h"
 #include "mc/world/level/block/LogBlock.h"
-#include "mc/world/level/block/VanillaBlockTags.h"
-#include "mc/world/level/block/VanillaStates.h"
+#include "mc/world/level/block/block_events/BlockRandomTickEvent.h"
+#include "mc/world/level/dimension/Dimension.h"
 #include "mc/world/level/dimension/DimensionType.h"
 
 #include <algorithm>
-#include <array>
 #include <atomic>
+#include <chrono>
 #include <cstddef>
-#include <cstdint>
-#include <cstdlib>
 #include <functional>
-#include <limits>
+#include <memory>
+#include <mutex>
+#include <random>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 namespace my_mod::fast_leaf_decay {
 namespace {
 
-constexpr int MaxRadius      = 16;
-constexpr int MaxLogDistance = 6;
+// 一个游戏刻。executeAfter 收的是真实时间，所以配置里的“刻”要在这里换算。
+constexpr auto TickDuration = std::chrono::milliseconds{50};
 
-// Hard bounds so that pathological input (mass block removal, a giant hand-built leaf
-// structure) degrades gracefully instead of stalling the tick.
-constexpr std::size_t MaxPendingDecays = 4096;
-constexpr std::size_t MaxGraphNodes    = 8192;
+std::atomic_bool enabled{false};
 
-constexpr int UnsupportedDistance = std::numeric_limits<int>::max();
-
-constexpr std::array<BlockPos, 6> NeighborOffsets{
-    BlockPos{1,  0,  0 },
-    BlockPos{-1, 0,  0 },
-    BlockPos{0,  1,  0 },
-    BlockPos{0,  -1, 0 },
-    BlockPos{0,  0,  1 },
-    BlockPos{0,  0,  -1},
-};
-
-struct BlockPosHash {
-    std::size_t operator()(BlockPos const& pos) const noexcept {
-        std::size_t seed  = std::hash<int>{}(pos.x);
-        seed             ^= std::hash<int>{}(pos.y) + 0x9e3779b9U + (seed << 6U) + (seed >> 2U);
-        seed             ^= std::hash<int>{}(pos.z) + 0x9e3779b9U + (seed << 6U) + (seed >> 2U);
-        return seed;
-    }
-};
-
-struct BlockPosEqual {
-    bool operator()(BlockPos const& lhs, BlockPos const& rhs) const noexcept {
-        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
-    }
-};
-
-struct PendingDecay {
-    WeakRef<BlockSource> region;
-    BlockPos             pos;
-};
-
+// 已经排队等待检查的树叶。存在的意义有两个：
+//   1. 去重。一棵树倒下时，同一片叶子会被相邻的多个方块反复唤醒，没有这张表的话
+//      每片叶子会被排上几十次队，连锁腐烂会指数级放大成一场自我 DoS。
+//   2. 让 disable() 能把还没触发的回调全部取消 —— 回调持有 WeakRef，插件卸载后
+//      再触发就是往已经析构的世界里写方块。
 struct PendingKey {
     DimensionType dimension;
-    BlockPos      pos;
+    int           x;
+    int           y;
+    int           z;
+
+    bool operator==(PendingKey const& other) const noexcept {
+        return dimension == other.dimension && x == other.x && y == other.y && z == other.z;
+    }
 };
 
 struct PendingKeyHash {
     std::size_t operator()(PendingKey const& key) const noexcept {
-        std::size_t seed = BlockPosHash{}(key.pos);
-        seed ^= std::hash<DimensionType>{}(key.dimension) + 0x9e3779b9U + (seed << 6U) + (seed >> 2U);
+        std::size_t seed = std::hash<DimensionType>{}(key.dimension);
+        for (int const value : {key.x, key.y, key.z}) {
+            seed ^= std::hash<int>{}(value) + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
+        }
         return seed;
     }
 };
 
-struct PendingKeyEqual {
-    bool operator()(PendingKey const& lhs, PendingKey const& rhs) const noexcept {
-        return lhs.dimension == rhs.dimension && BlockPosEqual{}(lhs.pos, rhs.pos);
+std::mutex pendingMutex;
+std::unordered_map<PendingKey, std::shared_ptr<ll::data::CancellableCallback>, PendingKeyHash> pending;
+
+int randomDelayTicks() {
+    auto const& decayConfig = config.fastLeafDecay;
+
+    int const low  = std::max(decayConfig.minDelayTicks, 0);
+    int const high = std::max(decayConfig.maxDelayTicks, low);
+    if (low == high) {
+        return low;
     }
-};
 
-std::atomic_bool          enabled{false};
-ll::event::ListenerPtr    tickListener;
-std::vector<PendingDecay> pendingDecays;
+    // 只有服务端主线程会走到这里，但 thread_local 不要钱，省得以后被别的线程调用时踩坑。
+    static thread_local std::mt19937 engine{std::random_device{}()};
+    return std::uniform_int_distribution<int>{low, high}(engine);
+}
 
-std::unordered_set<PendingKey, PendingKeyHash, PendingKeyEqual> pendingKeys;
+bool isLeaves(Block const& block) { return block.hasProperty(BlockProperty::Leaves); }
 
-// Set while we are destroying leaves ourselves, so the leaf-removal hook below can tell our own
-// cascade apart from a genuine player action.
-bool inDecayPass = false;
+// 手动补一次随机刻。原版腐烂完全依赖随机刻抽中这一格，概率极低，所以砍完树要等很久；
+// 这里不改判定逻辑，只是把“抽中”这件事直接送到叶子面前，原版的“六格内有没有原木”
+// 判定照常执行，该留的叶子还是会留下。
+void forceDecayCheck(BlockSource& region, BlockPos const& pos) {
+    Block const& block = region.getBlock(pos);
+    if (!isLeaves(block)) {
+        return;
+    }
 
-struct DecayPassGuard {
-    DecayPassGuard() { inDecayPass = true; }
-    ~DecayPassGuard() { inDecayPass = false; }
+    // hasProperty(Leaves) 只在 LeavesBlock 及其子类（MangroveLeavesBlock 等）上成立，
+    // 而 randomTick 是非虚成员函数，所以这里的下行转换是安全的。
+    auto const& leaves = static_cast<LeavesBlock const&>(block.getBlockType());
 
-    DecayPassGuard(DecayPassGuard const&)            = delete;
-    DecayPassGuard& operator=(DecayPassGuard const&) = delete;
-};
+    BlockEvents::BlockRandomTickEvent event{region, pos, Random::mThreadLocalRandom()};
+    leaves.randomTick(event);
+}
 
-void queueDecay(BlockSource& region, BlockPos const& pos) {
+void scheduleDecayCheck(WeakRef<Dimension> const& dimensionRef, DimensionType dimension, BlockPos const& pos) {
+    PendingKey const key{dimension, pos.x, pos.y, pos.z};
+
+    {
+        std::lock_guard const lock{pendingMutex};
+        if (pending.contains(key)) {
+            return;
+        }
+        // 先占位再排队：executeAfter 的回调有可能在本函数返回前就跑完（延迟为 0 刻时），
+        // 那时它会来 erase 这个 key，所以占位必须发生在排队之前。
+        pending.emplace(key, nullptr);
+    }
+
+    auto handle = ll::thread::ServerThreadExecutor::getDefault().executeAfter(
+        [dimensionRef, key, pos] {
+            {
+                std::lock_guard const lock{pendingMutex};
+                // 先摘掉自己，再去 randomTick。腐烂会递归触发 onRemove -> scheduleDecayCheck，
+                // 那条路径同样要拿这把锁，绝不能在持锁状态下调进去。
+                pending.erase(key);
+            }
+
+            if (!enabled.load(std::memory_order_relaxed)) {
+                return;
+            }
+
+            // 维度可能在这几刻里被卸载。GME 那份实现直接把 BlockSource& 捕获进 lambda，
+            // 世界一关就是野指针；这里改成每次重新解引用。
+            auto dimension = dimensionRef.lock();
+            if (!dimension) {
+                return;
+            }
+
+            forceDecayCheck(dimension->getBlockSourceFromMainChunkSource(), pos);
+        },
+        TickDuration * randomDelayTicks()
+    );
+
+    std::lock_guard const lock{pendingMutex};
+    auto const            slot = pending.find(key);
+    if (slot == pending.end()) {
+        // 回调已经跑完并清掉了占位，没有什么可取消的了。
+        return;
+    }
+    slot->second = std::move(handle);
+}
+
+// 唤醒被破坏方块周围 3x3x3 内的所有树叶。腐烂掉的叶子自己也会触发 LeavesBlock::onRemove，
+// 于是外圈叶子被继续唤醒，整棵树以扩散的方式掉光 —— 不需要在这里做 BFS。
+void wakeNeighbourLeaves(BlockSource& region, BlockPos const& origin) {
     if (!enabled.load(std::memory_order_relaxed)) {
         return;
     }
-    // Every leaf we destroy re-enters this hook. Queuing those would schedule a fresh cluster
-    // scan per destroyed leaf -- the amplification that let one felled tree spawn hundreds of
-    // overlapping scans.
-    if (inDecayPass) {
-        return;
-    }
-    if (pendingDecays.size() >= MaxPendingDecays) {
-        return;
-    }
-    // A single blast can hit thousands of blocks in one tick, most of them in the same cluster.
-    // Deduplicating here keeps that down to one scan per distinct origin.
-    if (!pendingKeys.emplace(PendingKey{region.getDimensionId(), pos}).second) {
-        return;
-    }
-    pendingDecays.push_back({region.getWeakRef(), pos});
-}
 
-bool isLeaf(Block const& block) { return block.hasProperty(BlockProperty::Leaves); }
-
-bool isPersistentLeaf(Block const& block) {
-    return block.getState<bool>(VanillaStates::PersistentBit()).value_or(false);
-}
-
-bool isLeafSupportingWood(Block const& block) {
-    return block.hasTag(VanillaBlockTags::Log()) || block.hasTag(VanillaBlockTags::Wood());
-}
-
-// Reusable scratch for the cluster walk. The tick handler is the only caller, and it runs one
-// pass at a time, so keeping the capacity around avoids re-allocating these on every scan.
-struct DecayScratch {
-    std::vector<BlockPos>                                                   positions;
-    std::vector<int>                                                        distance;
-    std::vector<std::uint8_t>                                               isCandidate;
-    std::unordered_map<BlockPos, std::uint32_t, BlockPosHash, BlockPosEqual> index;
-    std::vector<std::uint32_t>                                              frontier;
-    std::vector<std::uint32_t>                                              nextFrontier;
-
-    void clear() {
-        positions.clear();
-        distance.clear();
-        isCandidate.clear();
-        index.clear();
-        frontier.clear();
-        nextFrontier.clear();
-    }
-};
-
-DecayScratch scratch;
-
-// Decays the leaves left unsupported by the block removed at `origin`.
-//
-// The whole cluster is analysed in a single linear pass rather than the old
-// "scan a (2r+1)^3 cube, then run a fresh BFS per leaf found" approach:
-//
-//   1. Walk the connected leaf cluster once, out to radius + MaxLogDistance. Leaves within
-//      `radius` are decay candidates; the outer shell only carries support inwards, so support
-//      arriving from just outside the decay box is still seen.
-//   2. Multi-source BFS from every leaf touching wood, propagating up to MaxLogDistance - 1.
-//   3. Destroy the candidates the BFS never reached.
-//
-// Cost is O(cluster size) instead of O(r^3 x BFS).
-void decayUnsupportedLeaves(BlockSource& region, BlockPos const& origin, int radius) {
-    int const reach = radius + MaxLogDistance;
-
-    // Support checks reach beyond the configured decay radius; never load chunks for this feature.
-    if (!region.hasChunksAt(origin, reach, false)) {
+    Dimension& dimension = region.getDimension();
+    // 只处理主区块源。结构生成 / 传送门搭建等临时 BlockSource 上的方块变动跟玩家砍树无关，
+    // 而且回调里拿到的永远是主区块源，对不上就不该排队。
+    if (&region != &dimension.getBlockSourceFromMainChunkSource()) {
         return;
     }
 
-    // The furthest leaf that can still carry support to a candidate sits MaxLogDistance - 1 steps
-    // out from `radius`; its wood neighbour is then exactly at `reach`. Flooding no further keeps
-    // every getBlock inside the range hasChunksAt just vouched for.
-    int const floodExtent = reach - 1;
+    WeakRef<Dimension> const dimensionRef = dimension.getWeakRef();
+    DimensionType const      dimensionId  = region.getDimensionId();
 
-    DecayScratch& s = scratch;
-    s.clear();
-
-    auto const withinBox = [&](BlockPos const& pos, int extent) {
-        return std::abs(pos.x - origin.x) <= extent && std::abs(pos.y - origin.y) <= extent
-            && std::abs(pos.z - origin.z) <= extent;
-    };
-
-    auto const addNode = [&](BlockPos const& pos) {
-        auto const [entry, inserted] = s.index.try_emplace(pos, static_cast<std::uint32_t>(s.positions.size()));
-        if (inserted) {
-            s.positions.push_back(pos);
-            s.distance.push_back(UnsupportedDistance);
-            s.isCandidate.push_back(withinBox(pos, radius) ? 1 : 0);
-        }
-    };
-
-    // Step 1: seed from the leaves touching the removed block, then flood the cluster.
-    for (BlockPos const& offset : NeighborOffsets) {
-        BlockPos const start{origin.x + offset.x, origin.y + offset.y, origin.z + offset.z};
-        if (isLeaf(region.getBlock(start))) {
-            addNode(start);
-        }
-    }
-
-    for (std::size_t i = 0; i < s.positions.size(); ++i) {
-        // s.positions may reallocate inside the loop, so work from a copy.
-        BlockPos const current = s.positions[i];
-        for (BlockPos const& offset : NeighborOffsets) {
-            BlockPos const neighbor{current.x + offset.x, current.y + offset.y, current.z + offset.z};
-            Block const&   block = region.getBlock(neighbor);
-
-            if (isLeafSupportingWood(block)) {
-                s.distance[i] = 0; // Touching wood: a support source for step 2.
-                continue;
-            }
-            if (!isLeaf(block) || !withinBox(neighbor, floodExtent) || s.positions.size() >= MaxGraphNodes) {
-                continue;
-            }
-            addNode(neighbor);
-        }
-    }
-
-    // Step 2: spread support outwards from the wood-adjacent leaves.
-    for (std::size_t i = 0; i < s.positions.size(); ++i) {
-        if (s.distance[i] == 0) {
-            s.frontier.push_back(static_cast<std::uint32_t>(i));
-        }
-    }
-
-    for (int step = 0; step < MaxLogDistance - 1 && !s.frontier.empty(); ++step) {
-        s.nextFrontier.clear();
-        for (std::uint32_t const i : s.frontier) {
-            BlockPos const current = s.positions[i];
-            for (BlockPos const& offset : NeighborOffsets) {
-                BlockPos const neighbor{current.x + offset.x, current.y + offset.y, current.z + offset.z};
-                auto const     entry = s.index.find(neighbor);
-                if (entry == s.index.end() || s.distance[entry->second] != UnsupportedDistance) {
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dz = -1; dz <= 1; ++dz) {
+                if (dx == 0 && dy == 0 && dz == 0) {
                     continue;
                 }
-                s.distance[entry->second] = step + 1;
-                s.nextFrontier.push_back(entry->second);
+
+                BlockPos const pos{origin.x + dx, origin.y + dy, origin.z + dz};
+                if (!isLeaves(region.getBlock(pos))) {
+                    continue;
+                }
+                scheduleDecayCheck(dimensionRef, dimensionId, pos);
             }
         }
-        s.frontier.swap(s.nextFrontier);
-    }
-
-    // Step 3: whatever support never reached is gone.
-    DecayPassGuard const guard;
-    for (std::size_t i = 0; i < s.positions.size(); ++i) {
-        if (s.isCandidate[i] == 0 || s.distance[i] != UnsupportedDistance) {
-            continue;
-        }
-
-        BlockPos const& leafPos = s.positions[i];
-        Block const&    block   = region.getBlock(leafPos);
-        if (!isLeaf(block) || isPersistentLeaf(block)) {
-            continue;
-        }
-        region.getLevel().destroyBlock(region, leafPos, true, BlockChangeContext::environmentChange(leafPos));
-    }
-}
-
-void onServerTick(ll::event::ServerLevelTickEvent&) {
-    if (pendingDecays.empty()) {
-        return;
-    }
-
-    auto pending = std::move(pendingDecays);
-    pendingDecays.clear();
-    pendingKeys.clear();
-
-    int const radius = std::clamp(config.fastLeafDecay.radius, 1, MaxRadius);
-
-    for (auto const& task : pending) {
-        auto region = task.region.lock();
-        if (!region || isLeafSupportingWood(region->getBlock(task.pos))) {
-            continue;
-        }
-        decayUnsupportedLeaves(*region, task.pos, radius);
     }
 }
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 LL_TYPE_INSTANCE_HOOK(
-    LogRemovedHook,
-    ll::memory::HookPriority::Normal,
-    LogBlock,
-    &LogBlock::$onRemove,
-    void,
-    BlockSource&    region,
-    BlockPos const& pos
-) {
-    origin(region, pos);
-    queueDecay(region, pos);
-}
-
-LL_TYPE_INSTANCE_HOOK(
-    LeavesRemovedHook,
+    LeavesBlockOnRemoveHook,
     ll::memory::HookPriority::Normal,
     LeavesBlock,
     &LeavesBlock::$onRemove,
     void,
-    BlockSource&    region,
-    BlockPos const& pos
+    ::BlockSource&   region,
+    ::BlockPos const& pos
 ) {
     origin(region, pos);
-    queueDecay(region, pos);
+    wakeNeighbourLeaves(region, pos);
+}
+
+LL_TYPE_INSTANCE_HOOK(
+    LogBlockOnRemoveHook,
+    ll::memory::HookPriority::Normal,
+    LogBlock,
+    &LogBlock::$onRemove,
+    void,
+    ::BlockSource&   region,
+    ::BlockPos const& pos
+) {
+    origin(region, pos);
+    wakeNeighbourLeaves(region, pos);
 }
 #pragma clang diagnostic pop
 
 } // namespace
 
 bool enable() {
-    if (!config.fastLeafDecay.enable) {
+    if (!config.fastLeafDecay.enable || enabled.load(std::memory_order_relaxed)) {
         return true;
-    }
-    if (enabled.load(std::memory_order_relaxed)) {
-        return true;
-    }
-    if (LogRemovedHook::hook() != 0) {
-        return false;
-    }
-    if (LeavesRemovedHook::hook() != 0) {
-        LogRemovedHook::unhook();
-        return false;
     }
 
-    tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);
-    if (!tickListener) {
-        LogRemovedHook::unhook();
-        LeavesRemovedHook::unhook();
+    if (LeavesBlockOnRemoveHook::hook() != 0) {
+        return false;
+    }
+    if (LogBlockOnRemoveHook::hook() != 0) {
+        LeavesBlockOnRemoveHook::unhook();
         return false;
     }
 
@@ -355,15 +235,26 @@ void disable() {
     if (!enabled.exchange(false, std::memory_order_relaxed)) {
         return;
     }
-    LogRemovedHook::unhook();
-    LeavesRemovedHook::unhook();
-    if (tickListener) {
-        ll::event::EventBus::getInstance().removeListener<ll::event::ServerLevelTickEvent>(tickListener);
-        tickListener.reset();
+
+    LogBlockOnRemoveHook::unhook();
+    LeavesBlockOnRemoveHook::unhook();
+
+    // 取消所有还没触发的回调。它们捕获了 WeakRef，放着不管虽然不会崩，
+    // 但插件卸载后继续改方块显然不是我们想要的行为。
+    std::vector<std::shared_ptr<ll::data::CancellableCallback>> outstanding;
+    {
+        std::lock_guard const lock{pendingMutex};
+        outstanding.reserve(pending.size());
+        for (auto& [key, handle] : pending) {
+            if (handle) {
+                outstanding.emplace_back(std::move(handle));
+            }
+        }
+        pending.clear();
     }
-    pendingDecays.clear();
-    pendingKeys.clear();
-    scratch.clear();
+    for (auto const& handle : outstanding) {
+        handle->cancel();
+    }
 }
 
 } // namespace my_mod::fast_leaf_decay

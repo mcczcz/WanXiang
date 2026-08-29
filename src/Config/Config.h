@@ -30,7 +30,10 @@ struct MobEffectBlockerConfig {
 
 struct FastLeafDecayConfig {
     bool enable = true;
-    int  radius = 8;
+    // 每片被唤醒的树叶在 [minDelayTicks, maxDelayTicks] 个游戏刻后才检查腐烂。
+    // 随机化是刻意的：整棵树同刻消失既难看，也会把工作量堆在同一 tick 上。
+    int minDelayTicks = 2;
+    int maxDelayTicks = 8;
 };
 
 struct UnloadedEntitiesCleanerConfig {
@@ -101,7 +104,7 @@ struct ExplosionControlConfig {
 };
 
 struct Config {
-    int                           version                  = 16;
+    int                           version                  = 17;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "en_US";
     bool                          trustedSkinEnable        = true;
