@@ -3,6 +3,7 @@
 #include "ll/api/io/LogLevel.h"
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace my_mod {
@@ -11,6 +12,12 @@ struct XpOrbMergeConfig {
     bool  enable        = true;
     float radius        = 8.0F;
     int   intervalTicks = 20;
+};
+
+struct DroppedItemLifetimeConfig {
+    bool                                 enable         = false;
+    int                                  defaultSeconds = 300;
+    std::unordered_map<std::string, int> items{};
 };
 
 struct MobEffectBlockerConfig {
@@ -85,24 +92,25 @@ struct ExplosionControlConfig {
 };
 
 struct Config {
-    int                      version                  = 14;
-    ll::io::LogLevel         logLevel                 = ll::io::LogLevel::Info;
-    std::string              language                 = "en_US";
-    bool                     trustedSkinEnable        = true;
-    bool                     autoFishingEnable        = true;
-    bool                     abilityCommandEnable     = true;
-    bool                     cleanUnknownBlocksEnable = true;
-    bool                     hideOpPermissionEnable   = true;
-    XpOrbMergeConfig         xpOrbMerge{};
-    MobEffectBlockerConfig   mobEffectBlocker{};
-    FastLeafDecayConfig      fastLeafDecay{};
-    ScheduledCommandsConfig  scheduledCommands{};
-    CommandPermissionsConfig commandPermissions{};
-    ServerPongConfig         serverPong{};
-    ClientLevelNameConfig    clientLevelName{};
-    ExplosionControlConfig   explosionControl{};
-    bool                     markPacksAsAddon          = true;
-    bool                     forceResourcePackRequired = false;
+    int                       version                  = 15;
+    ll::io::LogLevel          logLevel                 = ll::io::LogLevel::Info;
+    std::string               language                 = "en_US";
+    bool                      trustedSkinEnable        = true;
+    bool                      autoFishingEnable        = true;
+    bool                      abilityCommandEnable     = true;
+    bool                      cleanUnknownBlocksEnable = true;
+    bool                      hideOpPermissionEnable   = true;
+    DroppedItemLifetimeConfig droppedItemLifetime{};
+    XpOrbMergeConfig          xpOrbMerge{};
+    MobEffectBlockerConfig    mobEffectBlocker{};
+    FastLeafDecayConfig       fastLeafDecay{};
+    ScheduledCommandsConfig   scheduledCommands{};
+    CommandPermissionsConfig  commandPermissions{};
+    ServerPongConfig          serverPong{};
+    ClientLevelNameConfig     clientLevelName{};
+    ExplosionControlConfig    explosionControl{};
+    bool                      markPacksAsAddon          = true;
+    bool                      forceResourcePackRequired = false;
 };
 
 } // namespace my_mod

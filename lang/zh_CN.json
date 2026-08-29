@@ -41,6 +41,7 @@
     "command_permission.no_valid_rules": "命令权限修改已启用，但没有有效规则。",
     "mob_effect_blocker.enable_failed": "状态效果禁用 Hook 注册失败。",
     "xp_orb_merge.enable_failed": "经验球合并事件注册失败。",
+    "dropped_item_lifetime.enable_failed": "掉落物存在时间 Hook 注册失败。",
     "fast_leaf_decay.enable_failed": "树叶快速腐烂 Hook 注册失败。",
     "clean_unknown_blocks.enable_failed": "未知方块清理 Hook 注册失败。",
     "clean_unknown_blocks.cleaned": "已清理 {} 个未知方块（区块：{}, {}）。",

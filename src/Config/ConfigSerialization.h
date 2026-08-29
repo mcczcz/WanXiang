@@ -51,6 +51,7 @@ inline constexpr bool kIsSerializableConfig = false;
 // ExplosionRuleConfig is deliberately absent: it has a hand-written full specialization below
 // that handles its std::optional members.
 WANXIANG_SERIALIZABLE_CONFIG(XpOrbMergeConfig);
+WANXIANG_SERIALIZABLE_CONFIG(DroppedItemLifetimeConfig);
 WANXIANG_SERIALIZABLE_CONFIG(MobEffectBlockerConfig);
 WANXIANG_SERIALIZABLE_CONFIG(FastLeafDecayConfig);
 WANXIANG_SERIALIZABLE_CONFIG(ScheduledCommandTaskConfig);
@@ -198,4 +199,3 @@ struct adl_serializer<T> {
 };
 
 } // namespace nlohmann
-

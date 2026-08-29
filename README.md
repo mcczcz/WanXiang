@@ -11,6 +11,7 @@
 | `abilityCommandEnable` | 强制注册原版 `/ability` 命令 | `true` |
 | `cleanUnknownBlocksEnable` | 区块加载时清理无法识别的方块 | `true` |
 | `hideOpPermissionEnable` | 对非管理员隐藏客户端的 OP 权限信息 | `true` |
+| `droppedItemLifetime` | 修改默认及指定掉落物的存在时间 | `enable=false` |
 | `xpOrbMerge` | 合并范围内的经验球 | `enable=true` |
 | `mobEffectBlocker` | 禁止指定状态效果触发伤害/死亡附带行为 | `enable=true` |
 | `fastLeafDecay` | 原木或树叶被破坏后加速清理无支撑树叶 | `enable=true` |
@@ -47,7 +48,7 @@
 
 ```json
 {
-    "version": 14,
+    "version": 15,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -56,6 +57,12 @@
     "abilityCommandEnable": true,
     "cleanUnknownBlocksEnable": true,
     "hideOpPermissionEnable": true,
+
+    "droppedItemLifetime": {
+        "enable": false,
+        "defaultSeconds": 300,
+        "items": {}
+    },
 
     "xpOrbMerge": {
         "enable": true,
@@ -122,6 +129,23 @@
 - **Ability 命令（`abilityCommandEnable`）**：在服务端注册原版 `/ability` 命令，即使当前不是教育版模式也会尝试注册。启用后可按原版语法使用，例如 `/ability Steve mayfly true`。
 - **未知方块清理（`cleanUnknownBlocksEnable`）**：区块加载时，将被游戏标记为“无法识别状态”的方块替换为空气，并在日志中记录清理数量。该操作不可恢复，建议先备份世界。
 - **隐藏 OP 权限（`hideOpPermissionEnable`）**：向非 OP 客户端发送能力数据包时，将玩家权限伪装为普通成员；OP 玩家收到原始权限数据。它只隐藏客户端显示，不会真正改变服务端权限。
+
+### 掉落物存在时间：`droppedItemLifetime`
+
+修改新生成掉落物的存在时间。未列入 `items` 的掉落物使用 `defaultSeconds`，指定物品使用自身的覆盖值；物品名必须填写包含命名空间的完整标识。秒数小于 `0` 时按 `0` 处理，掉落物会在下一次更新时消失。
+
+```json
+"droppedItemLifetime": {
+    "enable": true,
+    "defaultSeconds": 120,
+    "items": {
+        "minecraft:diamond": 600,
+        "minecraft:nether_star": 1800
+    }
+}
+```
+
+此示例让普通掉落物存在 2 分钟、钻石存在 10 分钟、下界之星存在 30 分钟。该设置只影响启用功能后新生成的掉落物。
 
 ### 经验球合并：`xpOrbMerge`
 
