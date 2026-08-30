@@ -103,6 +103,65 @@ struct ExplosionControlConfig {
     std::vector<ExplosionRuleConfig> rules{};
 };
 
+struct EntityCleanerScheduleConfig {
+    bool        enable = false;
+    std::string cron   = "0 */10 * * * *"; // 每 10 分钟
+};
+
+struct EntityCleanerThresholdConfig {
+    bool enable = false;
+    // 阈值比较的是「候选实体数」而非世界里的实体总数：后者含玩家和所有受保护实体，
+    // 用它做判据会让「2500 个受保护村民 + 500 只怪」的服务器永远触发、永远清不到目标。
+    int maxEntities        = 3000;
+    int targetEntities     = 2000;
+    int checkIntervalTicks = 100; // 5 秒检查一次
+    int cooldownSeconds    = 60;  // 两次阈值清理之间的最小间隔
+};
+
+// mode 语义：
+//   "whitelist" -> 只清理名单内的类型/family
+//   "blacklist" -> 名单内受保护，其余全部清理
+// 默认取 whitelist：名单写错或清空只会导致「什么都不删」，而 blacklist 的同类错误
+// 意味着「删除一切未列出的」。
+struct EntityCleanerFilterConfig {
+    std::string              mode      = "whitelist";
+    std::vector<std::string> typeNames = {"minecraft:item", "minecraft:xp_orb", "minecraft:arrow"};
+    std::vector<std::string> families  = {"monster"};
+};
+
+// 按实体的运行时状态保护，与类型无关，两种 mode 下都生效。
+struct EntityCleanerProtectionConfig {
+    bool  named                = true;
+    bool  tamed                = true;
+    bool  leashed              = true;
+    bool  vehicles             = true;
+    bool  persistent           = true;
+    bool  villagers            = true;
+    bool  builds               = true;
+    bool  bosses               = true;
+    bool  fallingBlocks        = true;
+    bool  movingBlocks         = true;
+    bool  fishingHooks         = true;
+    bool  ominousItemSpawners  = true;
+    float playerRadius         = 32.0F; // 0 = 关闭
+};
+
+struct EntityCleanerWarningConfig {
+    bool             enable        = true;
+    std::vector<int> secondsBefore = {10, 5, 3};
+};
+
+struct EntityCleanerConfig {
+    bool                          enable = false;
+    bool                          dryRun = false; // 只统计并记录日志，不实际删除
+    EntityCleanerScheduleConfig   schedule{};
+    EntityCleanerThresholdConfig  threshold{};
+    EntityCleanerFilterConfig     filter{};
+    EntityCleanerProtectionConfig protection{};
+    EntityCleanerWarningConfig    warning{};
+    bool                          logResult = true;
+};
+
 struct Config {
     int                           version                  = 17;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
@@ -122,6 +181,7 @@ struct Config {
     ServerPongConfig              serverPong{};
     ClientLevelNameConfig         clientLevelName{};
     ExplosionControlConfig        explosionControl{};
+    EntityCleanerConfig           entityCleaner{};
     bool                          markPacksAsAddon          = true;
     bool                          forceResourcePackRequired = false;
 };

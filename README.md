@@ -20,6 +20,7 @@
 | `commandPermissions` | 覆盖命令注册时的权限等级 | `enable=false` |
 | `serverPong` | 修改服务器列表中的 MOTD 和人数 | `enable=false` |
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
+| `entityCleaner` | 定时或超量时清理运行中的实体，清理前全服预告 | `enable=false` |
 | `markPacksAsAddon` / `forceResourcePackRequired` | 调整服务端资源包的叠加和强制下载行为 | `true` / `false` |
 
 ## 安装
@@ -45,11 +46,11 @@
 
 ### 完整示例
 
-下面是一份包含所有字段的示例。可以只保留需要修改的字段，缺失字段会使用代码中的默认值；缺失的顶层字段会在启动时自动补回原文件。
+下面是一份包含所有字段的示例。项目根目录的 [`config.example.json`](config.example.json) 提供了带中文注释、可直接复制的完整版本。可以只保留需要修改的字段，缺失字段会使用代码中的默认值；缺失的顶层字段会在启动时自动补回原文件。
 
 ```json
 {
-    "version": 16,
+    "version": 17,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -79,7 +80,8 @@
     },
     "fastLeafDecay": {
         "enable": true,
-        "radius": 8
+        "minDelayTicks": 2,
+        "maxDelayTicks": 8
     },
     "unloadedEntitiesCleaner": {
         "enable": true,
@@ -109,6 +111,46 @@
     "clientLevelName": {
         "enable": false,
         "name": ""
+    },
+    "entityCleaner": {
+        "enable": false,
+        "dryRun": false,
+        "schedule": {
+            "enable": false,
+            "cron": "0 */10 * * * *"
+        },
+        "threshold": {
+            "enable": false,
+            "maxEntities": 3000,
+            "targetEntities": 2000,
+            "checkIntervalTicks": 100,
+            "cooldownSeconds": 60
+        },
+        "filter": {
+            "mode": "whitelist",
+            "typeNames": ["minecraft:item", "minecraft:xp_orb", "minecraft:arrow"],
+            "families": ["monster"]
+        },
+        "protection": {
+            "named": true,
+            "tamed": true,
+            "leashed": true,
+            "vehicles": true,
+            "persistent": true,
+            "villagers": true,
+            "builds": true,
+            "bosses": true,
+            "fallingBlocks": true,
+            "movingBlocks": true,
+            "fishingHooks": true,
+            "ominousItemSpawners": true,
+            "playerRadius": 32.0
+        },
+        "warning": {
+            "enable": true,
+            "secondsBefore": [10, 5, 3]
+        },
+        "logResult": true
     },
     "markPacksAsAddon": true,
     "forceResourcePackRequired": false
@@ -289,6 +331,96 @@
     "name": "我的服务器"
 }
 ```
+
+### 实体清理：`entityCleaner`
+
+在服务器运行期间控制实体总量。与只在开服时扫描存档的 `unloadedEntitiesCleaner` 不同，本功能清理的是**已加载在世界里**的实体。默认 `enable=false`。
+
+#### 触发方式
+
+两种触发可以同时开启：
+
+- **定时（`schedule`）**：按 Cron 表达式触发，语法与 `scheduledCommands` 相同（6 位，含秒）。清理**全部**候选实体。
+- **超量（`threshold`）**：每 `checkIntervalTicks` 个游戏刻检查一次，候选实体数超过 `maxEntities` 时触发，按「离玩家最远的先删」只删到 `targetEntities` 为止，玩家眼前的实体尽量保留。`cooldownSeconds` 是两次超量清理的最小间隔，避免候选不足时反复触发刷屏。
+
+> `maxEntities` 比较的是**候选实体数**（即真正会被删的那些），不是世界里的实体总数。否则一个有 2500 个受保护村民的服务器会永远触发、永远清不到目标。
+
+#### `protection` 保护项详解
+
+一个实体必须**同时通过以下四层筛选**才会被删除：
+
+玩家始终不会进入清理候选，不受以下配置开关影响。
+
+1. **实体类型保护（`protection`）**：按实体类型跳过清理，两种名单模式下都生效。以下开关默认保护那些删掉后可能破坏机制或造成资产损失的实体：
+
+   | 开关 | 默认值 | 保护对象 | 关闭后的行为 |
+   | --- | --- | --- | --- |
+   | `villagers` | `true` | `Villager`、`VillagerV2`、`WanderingTrader` | 村民和流浪商人仍可能按名单被清理；卫道士、唤魔者等不会因为此开关自动受保护 |
+   | `builds` | `true` | 盔甲架、画、末影水晶、NPC、拴绳结，以及所有矿车和船的变体 | 这些实体只要通过其他筛选，就可能被清理；矿车/船内的物品也可能因此丢失 |
+   | `bosses` | `true` | 末影龙、凋灵 | Boss 只要通过其他筛选，就可能被清理 |
+   | `fallingBlocks` | `true` | 正在下落的方块实体（沙子、砂砾、铁砧等） | 可能打断方块落地或相关机制 |
+   | `movingBlocks` | `true` | 活塞推动中的方块实体 | 可能打断活塞运动和红石机制 |
+   | `fishingHooks` | `true` | 鱼钩实体 | 可能打断正常钓鱼，也可能影响本插件的自动钓鱼 |
+   | `ominousItemSpawners` | `true` | 试炼密室的不祥之瓶战利品生成器 | 可能导致试炼密室战利品生成流程异常 |
+
+2. **运行时状态保护（`protection`）**：与实体类型无关，两种名单模式下都生效。
+
+   | 开关 | 默认值 | 判断条件 | 关闭后的行为 |
+   | --- | --- | --- | --- |
+   | `named` | `true` | 名称标签不为空的实体（通常是命名牌命名过的实体） | 命名实体只要通过其他筛选，就可能被清理 |
+   | `tamed` | `true` | `isTame()` 为真的已驯服实体 | 已驯服宠物或坐骑只要通过其他筛选，就可能被清理 |
+   | `leashed` | `true` | 当前被拴绳连接的实体 | 被拴住的实体只要通过其他筛选，就可能被清理 |
+   | `vehicles` | `true` | 载有乘客，或正在骑乘另一个实体的实体 | 载具、乘客或骑乘中的实体只要通过其他筛选，就可能被清理 |
+   | `persistent` | `true` | 带有持久化标记、不会自然消失的实体；刷怪蛋或召唤命令生成的生物通常属于此类 | 持久化实体只要通过其他筛选，就可能被清理 |
+
+3. **玩家距离保护（`playerRadius`）**：同一维度内，实体到最近玩家的距离小于该值时跳过清理。`0`、负数或非有限数值表示关闭；没有玩家的维度不会触发这项保护。玩家本身仍始终不会进入清理候选。
+
+4. **管理员名单（`filter`）**：
+   - `"mode": "whitelist"`（默认）——**只清理**名单内的类型/family。
+   - `"mode": "blacklist"`——名单内**受保护**，其余全部清理。
+
+   `typeNames` 匹配完整实体标识（如 `minecraft:zombie`），`families` 匹配实体的 family（如 `monster`、`animal`）。
+
+> 默认取 `whitelist`：名单写错或清空只会导致「什么都不删」（服务器变卡，可恢复）；而 `blacklist` 的同类错误意味着「删除一切未列出的」（玩家资产没了，不可恢复）。
+>
+> `mode` 拼错（例如 `blacklsit`）时本功能会直接关闭并报错，**不会**回退到任一模式。
+
+#### 清理预告
+
+`warning.secondsBefore` 里的每个秒数都会在清理前向全服广播一次倒计时。列表会自动去重、降序排序并丢弃非正数；设为 `[]` 或 `warning.enable=false` 表示触发即清理，不预告。服务器无人在线时照常清理，只是跳过广播。
+
+#### 上线前请先演练
+
+`dryRun` 设为 `true` 时会完整跑一遍筛选流程并在日志里输出按类型分组的统计，但**不实际删除**任何实体。由于清理不可恢复，建议先这样验证一轮：
+
+```json
+"entityCleaner": {
+    "enable": true,
+    "dryRun": true,
+    "schedule": { "enable": true, "cron": "*/30 * * * * *" }
+}
+```
+
+确认日志里的清理清单符合预期后，再把 `dryRun` 改回 `false`。
+
+#### OP 手动管理命令：`/entitycleaner`
+
+拥有 OP 权限的玩家可以使用 `/entitycleaner`（别名 `/eclean`）打开实体管理面板。面板会统计**所有已加载维度**内的非玩家实体，每种实体类型显示一个复选开关，支持一次选择多种类型；这里不会因为自动清理的 `whitelist` / `blacklist` 隐藏实体。
+
+提交后会打开第二个确认表单，显示即将处理的实体类型和实时数量，并允许设置以下本次过滤/保留项：
+
+- 本次是否应用自动清理的 `whitelist` / `blacklist`（默认关闭；不会修改配置文件）；
+- 配置中定义的类型保护（Boss、村民、建筑、矿车、船和机制实体）；
+- 命名、驯服、拴绳、载具/乘客和持久化实体；
+- 玩家附近实体（使用 `protection.playerRadius`）。
+
+刷怪蛋生成的苦力怕通常带有持久化标记；要清理它们，请取消勾选“保留持久化实体”，或在配置中将 `protection.persistent` 设为 `false`：
+
+```json
+"persistent": false
+```
+
+只有在第二个表单点击“确定清理”后才会执行。玩家始终不会被清理。此命令针对所有已加载维度的实体，且是明确确认的手动操作，不受自动清理的 `enable` 或 `dryRun` 开关影响。
 
 ### 资源包叠加与强制下载
 

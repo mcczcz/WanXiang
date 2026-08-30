@@ -1,0 +1,201 @@
+{
+  // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
+  "version": 17,
+
+  // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
+  "logLevel": 3,
+  // 翻译文件名，不含 .json。随包提供 zh_CN 和 en_US。
+  "language": "zh_CN",
+
+  // 将玩家皮肤标记为可信任皮肤。
+  "trustedSkinEnable": true,
+  // 钓鱼成功后自动收杆并重新抛竿。
+  "autoFishingEnable": true,
+  // 注册原版 /ability 命令。
+  "abilityCommandEnable": true,
+  // 区块加载时清理无法识别的方块。操作不可恢复。
+  "cleanUnknownBlocksEnable": true,
+  // 向非管理员隐藏客户端显示的 OP 权限信息。
+  "hideOpPermissionEnable": true,
+
+  // 修改掉落物存在时间。只影响启用后新生成的掉落物。
+  "droppedItemLifetime": {
+    "enable": false,
+    // 未单独列出的物品使用此时间，单位为秒。
+    "defaultSeconds": 300,
+    // 按完整物品标识覆盖时间，例如 minecraft:diamond。
+    "items": {
+      // "minecraft:diamond": 600,
+      // "minecraft:nether_star": 1800
+    }
+  },
+
+  // 合并同一维度内指定半径范围的经验球。
+  "xpOrbMerge": {
+    "enable": true,
+    "radius": 8.0,
+    // 检查间隔，单位为游戏刻；20 刻约等于 1 秒。
+    "intervalTicks": 20
+  },
+
+  // 阻止状态效果触发的附带行为。
+  "mobEffectBlocker": {
+    "enable": true,
+    "weaving": true,
+    "infested": true,
+    "oozing": true,
+    "windCharged": false
+  },
+
+  // 原木或树叶被破坏后，加速清理无支撑的非持久树叶。
+  "fastLeafDecay": {
+    "enable": true,
+    // 每片树叶随机延迟检查的最小/最大游戏刻。
+    "minDelayTicks": 2,
+    "maxDelayTicks": 8
+  },
+
+  // 服务器启动时清理世界数据库中的未加载实体记录，仅执行一次。
+  // entityTypeNamesToClean 为空表示清理全部未加载实体，操作不可恢复。
+  "unloadedEntitiesCleaner": {
+    "enable": true,
+    "entityTypeNamesToClean": [],
+    "logCleanedEntityTypeCounts": true,
+    "logSkippedEntityTypeCounts": true,
+    "writeCleanupResultToTextLog": false,
+    "cleanupResultTextLogFile": "cleanup-result.log"
+  },
+
+  // 按 Cron 表达式执行服务端命令。Cron 为 6 段：秒 分 时 月内日期 月 星期。
+  "scheduledCommands": {
+    "enable": false,
+    "tasks": [
+      {
+        "cron": "0 */5 * * * *",
+        // 不要带开头的 /；命令以服务端 Owner 权限执行。
+        "command": "list",
+        "outputToConsole": true
+      }
+    ]
+  },
+
+  // 覆盖命令注册时的权限等级。修改后需要重启服务器。
+  "commandPermissions": {
+    "enable": false,
+    "rules": [
+      {
+        "command": "gamemode",
+        // 可选：Any、GameDirectors、Admin、Host、Owner、Internal。
+        "permissionLevel": "Any"
+      }
+    ]
+  },
+
+  // 修改客户端服务器列表中显示的 MOTD 和人数。
+  "serverPong": {
+    "enable": false,
+    "motdEnable": false,
+    "motd": "§a生存服务器 | WanXiang",
+    "playerCountEnable": false,
+    "playerCount": 0,
+    "maxPlayerCountEnable": false,
+    "maxPlayerCount": 0
+  },
+
+  // 修改客户端进入世界时显示的存档名称，不会修改世界实际名称。
+  "clientLevelName": {
+    "enable": false,
+    "name": "我的服务器"
+  },
+
+  // 控制运行期间的实体清理。清理操作不可恢复，建议先使用 dryRun=true 演练。
+  "entityCleaner": {
+    "enable": true,
+    // true 只统计并记录日志，不实际删除实体。
+    "dryRun": true,
+    "schedule": {
+      "enable": true,
+      "cron": "0 */5 * * * *"
+    },
+    "threshold": {
+      "enable": true,
+      // 候选实体数超过此值时触发阈值清理。
+      "maxEntities": 700,
+      // 阈值清理后最多保留的候选实体数。
+      "targetEntities": 200,
+      "checkIntervalTicks": 100,
+      "cooldownSeconds": 40
+    },
+    "filter": {
+      // whitelist=只清理名单内类型/family；blacklist=名单内受保护，其余清理。
+      "mode": "whitelist",
+      "typeNames": ["minecraft:item", "minecraft:xp_orb", "minecraft:arrow"],
+      "families": ["monster"]
+    },
+    "protection": {
+      // 下面的布尔值为 true 时启用对应保护，设为 false 后实体仍需通过名单和其他保护检查才可能被清理。
+      // 命名保护：实体的名称标签不为空时跳过清理。玩家无论如何都会跳过。
+      "named": true,
+      // 驯服保护：跳过已驯服的动物或坐骑，例如狼、猫、鹦鹉和马。
+      "tamed": true,
+      // 拴绳保护：跳过当前被拴绳连接的实体。
+      "leashed": true,
+      // 载具/乘客保护：实体载有乘客，或实体正在骑乘另一个实体时跳过。
+      "vehicles": true,
+      // 持久化保护：跳过带有持久化标记、不会自然消失的实体；刷怪蛋或召唤命令生成的生物通常也带此标记。
+      // 如果希望清理这类苦力怕等实体，请设为 false，或在 /entitycleaner 的确认表单中取消勾选对应保留项。
+      "persistent": true,
+      // 村民保护：跳过 Villager、VillagerV2 和 WanderingTrader。
+      "villagers": true,
+      // 建造物保护：跳过盔甲架、画、末影水晶、NPC、拴绳结，以及所有矿车和船的变体。
+      "builds": true,
+      // Boss 保护：跳过末影龙和凋灵。
+      "bosses": true,
+      // 下落方块保护：跳过正在下落的沙子、砂砾、铁砧等 FallingBlock 实体。
+      "fallingBlocks": true,
+      // 移动方块保护：跳过活塞推动中的 MovingBlock 实体。
+      "movingBlocks": true,
+      // 鱼钩保护：跳过 FishingHook；关闭后可能影响自动钓鱼和正常钓鱼。
+      "fishingHooks": true,
+      // 不祥之瓶生成器保护：跳过试炼密室的不祥之瓶战利品生成器。
+      "ominousItemSpawners": true,
+      // 玩家距离保护：同一维度内距最近玩家小于此格数的实体跳过；0 或负数表示关闭。
+      "playerRadius": 0
+    },
+    "warning": {
+      "enable": true,
+      // 清理前广播的倒计时秒数；空数组表示触发即清理。
+      "secondsBefore": [10, 5, 3]
+    },
+    // 是否在日志中输出按实体类型分组的删除统计。
+    "logResult": true
+  },
+
+  // 将服务端资源包标记为 Add-on，使客户端资源包可以与其叠加。
+  "markPacksAsAddon": true,
+  // 是否强制客户端下载并使用服务端资源包。
+  "forceResourcePackRequired": false,
+
+  // 爆炸控制。规则按顺序应用；可选覆盖字段为 null 时保持原版值。
+  "explosionControl": {
+    "enable": false,
+    "rules": [
+      {
+        // * 匹配所有来源；<none> 匹配没有实体来源的爆炸。
+        "sourceType": "minecraft:tnt",
+        "cancel": false,
+        "radius": null,
+        "fire": null,
+        "breaking": null,
+        "allowUnderwater": null,
+        "canToggleBlocks": null,
+        "damageScaling": null,
+        "ignoreBlockResistance": null,
+        "maxResistance": null,
+        "inWater": null,
+        "totalDamage": null,
+        "knockbackScaling": null
+      }
+    ]
+  }
+}
