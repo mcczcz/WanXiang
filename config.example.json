@@ -1,6 +1,6 @@
 {
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
-  "version": 17,
+  "version": 18,
 
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
@@ -124,7 +124,9 @@
       // 阈值清理后最多保留的候选实体数。
       "targetEntities": 200,
       "checkIntervalTicks": 100,
-      "cooldownSeconds": 40
+      "cooldownSeconds": 40,
+      // 最近一次服务端 tick 耗时超过此值（单位：毫秒）时触发阈值清理；0 表示关闭。
+      "maxMspt": 0.0
     },
     "filter": {
       // whitelist=只清理名单内类型/family；blacklist=名单内受保护，其余清理。

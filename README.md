@@ -50,7 +50,7 @@
 
 ```json
 {
-    "version": 17,
+    "version": 18,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -124,7 +124,8 @@
             "maxEntities": 3000,
             "targetEntities": 2000,
             "checkIntervalTicks": 100,
-            "cooldownSeconds": 60
+            "cooldownSeconds": 60,
+            "maxMspt": 0.0
         },
         "filter": {
             "mode": "whitelist",
@@ -341,7 +342,7 @@
 两种触发可以同时开启：
 
 - **定时（`schedule`）**：按 Cron 表达式触发，语法与 `scheduledCommands` 相同（6 位，含秒）。清理**全部**候选实体。
-- **超量（`threshold`）**：每 `checkIntervalTicks` 个游戏刻检查一次，候选实体数超过 `maxEntities` 时触发，按「离玩家最远的先删」只删到 `targetEntities` 为止，玩家眼前的实体尽量保留。`cooldownSeconds` 是两次超量清理的最小间隔，避免候选不足时反复触发刷屏。
+- **超量（`threshold`）**：每 `checkIntervalTicks` 个游戏刻检查一次，候选实体数超过 `maxEntities`，或最近一次服务端 tick 的 MSPT 超过 `maxMspt`（毫秒，设为 `0` 关闭）时触发；按「离玩家最远的先删」只删到 `targetEntities` 为止，玩家眼前的实体尽量保留。`cooldownSeconds` 是两次阈值清理的最小间隔，避免候选不足或 MSPT 持续偏高时反复触发刷屏。
 
 > `maxEntities` 比较的是**候选实体数**（即真正会被删的那些），不是世界里的实体总数。否则一个有 2500 个受保护村民的服务器会永远触发、永远清不到目标。
 

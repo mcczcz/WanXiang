@@ -116,6 +116,8 @@ struct EntityCleanerThresholdConfig {
     int targetEntities     = 2000;
     int checkIntervalTicks = 100; // 5 秒检查一次
     int cooldownSeconds    = 60;  // 两次阈值清理之间的最小间隔
+    // 最近一次服务端 tick 的耗时上限，单位为毫秒；0 或负数表示关闭 MSPT 触发。
+    double maxMspt = 0.0;
 };
 
 // mode 语义：
@@ -163,7 +165,7 @@ struct EntityCleanerConfig {
 };
 
 struct Config {
-    int                           version                  = 17;
+    int                           version                  = 18;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "en_US";
     bool                          trustedSkinEnable        = true;

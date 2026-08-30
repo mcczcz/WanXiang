@@ -9,6 +9,7 @@
 #include "ll/api/event/world/ServerLevelTickEvent.h"
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/deps/core/string/HashedString.h"
+#include "mc/profile/ProfilerLite.h"
 #include "mc/world/actor/Actor.h"
 #include "mc/world/actor/ActorCategory.h"
 #include "mc/world/actor/ActorType.h"
@@ -54,12 +55,13 @@ std::unordered_set<std::string> filterTypeNames;
 std::vector<HashedString>       filterFamilies;
 
 // --- enable() 时净化过的数值，后续代码可以直接信任 ---
-int   thresholdMax          = 0;
-int   thresholdTarget       = 0;
-int   thresholdCheckTicks   = 1;
-int   thresholdCooldown     = 0;
-float protectRadiusSquared  = 0.0F;
-bool  protectRadiusEnabled  = false;
+int    thresholdMax         = 0;
+int    thresholdTarget      = 0;
+int    thresholdCheckTicks  = 1;
+int    thresholdCooldown    = 0;
+double thresholdMaxMspt     = 0.0;
+float  protectRadiusSquared = 0.0F;
+bool   protectRadiusEnabled = false;
 
 // --- 触发器状态 ---
 bool           cronEnabled = false;
@@ -343,6 +345,15 @@ void updatePending(Level& level) {
     }
 }
 
+double currentMspt() {
+    auto const& profiler = ProfilerLite::gProfilerLiteInstance();
+    auto const& tickTime = profiler.mDebugServerTickTime.get();
+    if (tickTime <= std::chrono::nanoseconds::zero()) {
+        return 0.0;
+    }
+    return std::chrono::duration<double, std::milli>(tickTime).count();
+}
+
 void checkThreshold(Level& level) {
     if (pendingKind != CleanupKind::None) {
         return;
@@ -355,6 +366,14 @@ void checkThreshold(Level& level) {
         if (since < static_cast<long long>(thresholdCooldown)) {
             return;
         }
+    }
+
+    // ProfilerLite stores the completed server tick duration in nanoseconds. An MSPT trigger
+    // shares the same cleanup target and cooldown as the entity-count trigger.
+    bool const msptThresholdExceeded = thresholdMaxMspt > 0.0 && currentMspt() > thresholdMaxMspt;
+    if (msptThresholdExceeded) {
+        requestCleanup(CleanupKind::Threshold);
+        return;
     }
 
     // 比较的是「候选数」而不是世界实体总数：后者含玩家和全部受保护实体，用它做判据
@@ -422,6 +441,7 @@ void resetState() {
     thresholdTarget      = 0;
     thresholdCheckTicks  = 1;
     thresholdCooldown    = 0;
+    thresholdMaxMspt     = 0.0;
     protectRadiusSquared = 0.0F;
     protectRadiusEnabled = false;
     cronEnabled          = false;
@@ -536,6 +556,9 @@ bool enable() {
     thresholdTarget     = std::clamp(cleanerConfig.threshold.targetEntities, 0, std::max(thresholdMax - 1, 0));
     thresholdCheckTicks = std::max(cleanerConfig.threshold.checkIntervalTicks, 1);
     thresholdCooldown   = std::max(cleanerConfig.threshold.cooldownSeconds, 0);
+    thresholdMaxMspt    = std::isfinite(cleanerConfig.threshold.maxMspt) && cleanerConfig.threshold.maxMspt > 0.0
+                            ? cleanerConfig.threshold.maxMspt
+                            : 0.0;
 
     float const radius = cleanerConfig.protection.playerRadius;
     if (std::isfinite(radius) && radius > 0.0F) {
