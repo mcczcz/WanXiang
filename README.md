@@ -50,7 +50,7 @@
 
 ```json
 {
-    "version": 18,
+    "version": 19,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -126,6 +126,14 @@
             "checkIntervalTicks": 100,
             "cooldownSeconds": 60,
             "maxMspt": 0.0
+        },
+        "droppedItem": {
+            "protectAboveAge": 5900,
+            "whitelist": [
+                "minecraft:diamond",
+                "minecraft:netherite_ingot",
+                "minecraft:nether_star"
+            ]
         },
         "filter": {
             "mode": "whitelist",
@@ -344,6 +352,8 @@
 - **定时（`schedule`）**：按 Cron 表达式触发，语法与 `scheduledCommands` 相同（6 位，含秒）。清理**全部**候选实体。
 - **超量（`threshold`）**：每 `checkIntervalTicks` 个游戏刻检查一次，候选实体数超过 `maxEntities`，或最近一次服务端 tick 的 MSPT 超过 `maxMspt`（毫秒，设为 `0` 关闭）时触发；按「离玩家最远的先删」只删到 `targetEntities` 为止，玩家眼前的实体尽量保留。`cooldownSeconds` 是两次阈值清理的最小间隔，避免候选不足或 MSPT 持续偏高时反复触发刷屏。
 
+掉落物候选还会应用 `droppedItem` 保护：掉落物的 `age` 从 `6000` 向下递减，`age > protectAboveAge` 时不会被自动清理。默认 `protectAboveAge=5900`，即保护刚生成后的约 100 tick（5 秒）；设为 `0` 可关闭年龄保护。白名单 `whitelist` 中的完整物品标识始终不会被自动清理。`/entitycleaner` 手动清理的确认页提供两个独立开关，可分别选择是否保留新掉落物、是否保留白名单掉落物。
+
 > `maxEntities` 比较的是**候选实体数**（即真正会被删的那些），不是世界里的实体总数。否则一个有 2500 个受保护村民的服务器会永远触发、永远清不到目标。
 
 #### `protection` 保护项详解
@@ -412,6 +422,7 @@
 
 - 本次是否应用自动清理的 `whitelist` / `blacklist`（默认关闭；不会修改配置文件）；
 - 配置中定义的类型保护（Boss、村民、建筑、矿车、船和机制实体）；
+- 新掉落物年龄保护和掉落物白名单保护（两个独立开关，默认均开启）；
 - 命名、驯服、拴绳、载具/乘客和持久化实体；
 - 玩家附近实体（使用 `protection.playerRadius`）。
 

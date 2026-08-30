@@ -120,6 +120,21 @@ struct EntityCleanerThresholdConfig {
     double maxMspt = 0.0;
 };
 
+struct EntityCleanerDroppedItemConfig {
+    // 掉落物 age 大于此值时视为刚生成并予以保护；age 从 6000 向下递减。0 表示关闭。
+    int protectAboveAge = 5900;
+    // 完整物品标识白名单（例如 minecraft:diamond），白名单内物品始终保留。
+    std::vector<std::string> whitelist = {
+        "minecraft:netherite_helmet",   "minecraft:netherite_sword",    "minecraft:netherite_chestplate",
+        "minecraft:diamond_helmet",     "minecraft:netherite_leggings", "minecraft:undyed_shulker_box",
+        "minecraft:netherite_boots",    "minecraft:shulker_box",        "minecraft:elytra",
+        "minecraft:dragon_egg",         "minecraft:nether_star",        "minecraft:diamond_sword",
+        "minecraft:diamond_chestplate", "minecraft:diamond_boots",      "minecraft:diamond_leggings",
+        "minecraft:diamond_hoe",        "minecraft:netherite_hoe",      "minecraft:diamond_axe",
+        "minecraft:netherite_axe",      "minecraft:netherite_pickaxe",  "minecraft:diamond_pickaxe"
+    };
+};
+
 // mode 语义：
 //   "whitelist" -> 只清理名单内的类型/family
 //   "blacklist" -> 名单内受保护，其余全部清理
@@ -133,19 +148,19 @@ struct EntityCleanerFilterConfig {
 
 // 按实体的运行时状态保护，与类型无关，两种 mode 下都生效。
 struct EntityCleanerProtectionConfig {
-    bool  named                = true;
-    bool  tamed                = true;
-    bool  leashed              = true;
-    bool  vehicles             = true;
-    bool  persistent           = true;
-    bool  villagers            = true;
-    bool  builds               = true;
-    bool  bosses               = true;
-    bool  fallingBlocks        = true;
-    bool  movingBlocks         = true;
-    bool  fishingHooks         = true;
-    bool  ominousItemSpawners  = true;
-    float playerRadius         = 32.0F; // 0 = 关闭
+    bool  named               = true;
+    bool  tamed               = true;
+    bool  leashed             = true;
+    bool  vehicles            = true;
+    bool  persistent          = true;
+    bool  villagers           = true;
+    bool  builds              = true;
+    bool  bosses              = true;
+    bool  fallingBlocks       = true;
+    bool  movingBlocks        = true;
+    bool  fishingHooks        = true;
+    bool  ominousItemSpawners = true;
+    float playerRadius        = 32.0F; // 0 = 关闭
 };
 
 struct EntityCleanerWarningConfig {
@@ -154,18 +169,19 @@ struct EntityCleanerWarningConfig {
 };
 
 struct EntityCleanerConfig {
-    bool                          enable = false;
-    bool                          dryRun = false; // 只统计并记录日志，不实际删除
-    EntityCleanerScheduleConfig   schedule{};
-    EntityCleanerThresholdConfig  threshold{};
-    EntityCleanerFilterConfig     filter{};
-    EntityCleanerProtectionConfig protection{};
-    EntityCleanerWarningConfig    warning{};
-    bool                          logResult = true;
+    bool                           enable = false;
+    bool                           dryRun = false; // 只统计并记录日志，不实际删除
+    EntityCleanerScheduleConfig    schedule{};
+    EntityCleanerThresholdConfig   threshold{};
+    EntityCleanerDroppedItemConfig droppedItem{};
+    EntityCleanerFilterConfig      filter{};
+    EntityCleanerProtectionConfig  protection{};
+    EntityCleanerWarningConfig     warning{};
+    bool                           logResult = true;
 };
 
 struct Config {
-    int                           version                  = 18;
+    int                           version                  = 19;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "en_US";
     bool                          trustedSkinEnable        = true;

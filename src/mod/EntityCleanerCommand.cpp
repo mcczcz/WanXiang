@@ -43,15 +43,17 @@ struct EntityTypeEntry {
 };
 
 struct ManualCleanupOptions {
-    bool  keepTypeProtected = true;
-    bool  keepNamed         = true;
-    bool  keepTamed         = true;
-    bool  keepLeashed       = true;
-    bool  keepVehicles      = true;
-    bool  keepPersistent    = true;
-    bool  keepNearPlayers   = false;
-    bool  applyConfigFilter = false;
-    float playerRadius      = 0.0F;
+    bool  keepTypeProtected           = true;
+    bool  keepYoungDroppedItems       = true;
+    bool  keepWhitelistedDroppedItems = true;
+    bool  keepNamed                   = true;
+    bool  keepTamed                   = true;
+    bool  keepLeashed                 = true;
+    bool  keepVehicles                = true;
+    bool  keepPersistent              = true;
+    bool  keepNearPlayers             = false;
+    bool  applyConfigFilter           = false;
+    float playerRadius                = 0.0F;
 };
 
 bool isFinitePosition(Vec3 const& position) {
@@ -172,6 +174,12 @@ void executeManualCleanup(
         if (options.keepTypeProtected && entity_cleaner::isTypeProtectedByConfig(*actor)) {
             continue;
         }
+        if (options.keepYoungDroppedItems && entity_cleaner::isDroppedItemAgeProtectedByConfig(*actor)) {
+            continue;
+        }
+        if (options.keepWhitelistedDroppedItems && entity_cleaner::isDroppedItemWhitelistedByConfig(*actor)) {
+            continue;
+        }
         if ((options.keepNamed && !actor->getNameTag().empty()) || (options.keepTamed && actor->isTame())
             || (options.keepLeashed && actor->isLeashed())
             || (options.keepVehicles && (actor->hasPassenger() || actor->isRiding()))
@@ -239,6 +247,18 @@ void showConfirmationForm(Player& player, std::vector<std::string> selectedTypes
         true,
         tr("entity_cleaner_command.keep_type_protected_tooltip")
     );
+    form.appendToggle(
+        "keepYoungDroppedItems",
+        tr("entity_cleaner_command.keep_young_dropped_items"),
+        true,
+        tr("entity_cleaner_command.keep_young_dropped_items_tooltip")
+    );
+    form.appendToggle(
+        "keepWhitelistedDroppedItems",
+        tr("entity_cleaner_command.keep_whitelisted_dropped_items"),
+        true,
+        tr("entity_cleaner_command.keep_whitelisted_dropped_items_tooltip")
+    );
     form.appendToggle("keepNamed", tr("entity_cleaner_command.keep_named"), protection.named);
     form.appendToggle("keepTamed", tr("entity_cleaner_command.keep_tamed"), protection.tamed);
     form.appendToggle("keepLeashed", tr("entity_cleaner_command.keep_leashed"), protection.leashed);
@@ -265,6 +285,8 @@ void showConfirmationForm(Player& player, std::vector<std::string> selectedTypes
             auto const& protection = config.entityCleaner.protection;
             ManualCleanupOptions options{
                 getToggle(result, "keepTypeProtected"),
+                getToggle(result, "keepYoungDroppedItems"),
+                getToggle(result, "keepWhitelistedDroppedItems"),
                 getToggle(result, "keepNamed"),
                 getToggle(result, "keepTamed"),
                 getToggle(result, "keepLeashed"),

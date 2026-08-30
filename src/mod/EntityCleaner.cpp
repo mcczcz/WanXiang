@@ -13,6 +13,7 @@
 #include "mc/world/actor/Actor.h"
 #include "mc/world/actor/ActorCategory.h"
 #include "mc/world/actor/ActorType.h"
+#include "mc/world/actor/item/ItemActor.h"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "mc/world/level/dimension/DimensionType.h"
@@ -59,9 +60,12 @@ int    thresholdMax         = 0;
 int    thresholdTarget      = 0;
 int    thresholdCheckTicks  = 1;
 int    thresholdCooldown    = 0;
-double thresholdMaxMspt     = 0.0;
-float  protectRadiusSquared = 0.0F;
-bool   protectRadiusEnabled = false;
+double thresholdMaxMspt          = 0.0;
+int    droppedItemProtectAboveAge = 0;
+float  protectRadiusSquared       = 0.0F;
+bool   protectRadiusEnabled       = false;
+
+std::unordered_set<std::string> droppedItemWhitelist;
 
 // --- 触发器状态 ---
 bool           cronEnabled = false;
@@ -176,6 +180,19 @@ bool matchesFilter(Actor const& actor) {
     return filterIsWhitelist ? listed : !listed;
 }
 
+bool isDroppedItemProtected(Actor const& actor) {
+    if (actor.getEntityTypeId() != ActorType::ItemEntity) {
+        return false;
+    }
+
+    // 精确确认实体类型后再做静态转换；服务端的 ItemEntity 对应 ItemActor。
+    auto const& itemActor = static_cast<ItemActor const&>(actor);
+    if (droppedItemProtectAboveAge > 0 && itemActor.age() > droppedItemProtectAboveAge) {
+        return true;
+    }
+    return droppedItemWhitelist.contains(itemActor.item().getTypeName());
+}
+
 struct Candidate {
     Actor* actor;
     float  distanceSquared; // 到同维度最近玩家的距离平方；该维度无玩家时为 infinity
@@ -203,7 +220,8 @@ std::vector<Candidate> collectCandidates(Level& level) {
         if (actor == nullptr || actor->isRemoved() || actor->isPlayer()) {
             continue;
         }
-        if (isTypeProtected(*actor) || isStateProtected(*actor) || !matchesFilter(*actor)) {
+        if (isTypeProtected(*actor) || isStateProtected(*actor) || !matchesFilter(*actor)
+            || isDroppedItemProtected(*actor)) {
             continue;
         }
 
@@ -442,8 +460,10 @@ void resetState() {
     thresholdCheckTicks  = 1;
     thresholdCooldown    = 0;
     thresholdMaxMspt     = 0.0;
+    droppedItemProtectAboveAge = 0;
     protectRadiusSquared = 0.0F;
     protectRadiusEnabled = false;
+    droppedItemWhitelist.clear();
     cronEnabled          = false;
     cronNextRun          = 0;
     tickCounter          = 0;
@@ -486,6 +506,28 @@ bool matchesConfiguredFilter(::Actor const& actor) {
         }
     }
     return filter.mode == "whitelist" ? listed : !listed;
+}
+
+bool isDroppedItemAgeProtectedByConfig(::Actor const& actor) {
+    if (actor.getEntityTypeId() != ActorType::ItemEntity) {
+        return false;
+    }
+
+    auto const& itemActor  = static_cast<ItemActor const&>(actor);
+    auto const& itemConfig = config.entityCleaner.droppedItem;
+    return itemConfig.protectAboveAge > 0 && itemActor.age() > itemConfig.protectAboveAge;
+}
+
+bool isDroppedItemWhitelistedByConfig(::Actor const& actor) {
+    if (actor.getEntityTypeId() != ActorType::ItemEntity) {
+        return false;
+    }
+
+    auto const& itemActor  = static_cast<ItemActor const&>(actor);
+    auto const& itemConfig = config.entityCleaner.droppedItem;
+    std::string const itemName = itemActor.item().getTypeName();
+    return std::find(itemConfig.whitelist.begin(), itemConfig.whitelist.end(), itemName)
+        != itemConfig.whitelist.end();
 }
 
 bool enable() {
@@ -559,6 +601,13 @@ bool enable() {
     thresholdMaxMspt    = std::isfinite(cleanerConfig.threshold.maxMspt) && cleanerConfig.threshold.maxMspt > 0.0
                             ? cleanerConfig.threshold.maxMspt
                             : 0.0;
+    droppedItemProtectAboveAge = std::max(cleanerConfig.droppedItem.protectAboveAge, 0);
+    droppedItemWhitelist.reserve(cleanerConfig.droppedItem.whitelist.size());
+    for (std::string const& itemName : cleanerConfig.droppedItem.whitelist) {
+        if (!itemName.empty()) {
+            droppedItemWhitelist.insert(itemName);
+        }
+    }
 
     float const radius = cleanerConfig.protection.playerRadius;
     if (std::isfinite(radius) && radius > 0.0F) {
@@ -617,6 +666,8 @@ bool enable() { return true; }
 void disable() {}
 bool isTypeProtectedByConfig(::Actor const&) { return false; }
 bool matchesConfiguredFilter(::Actor const&) { return false; }
+bool isDroppedItemAgeProtectedByConfig(::Actor const&) { return false; }
+bool isDroppedItemWhitelistedByConfig(::Actor const&) { return false; }
 
 } // namespace my_mod::entity_cleaner
 

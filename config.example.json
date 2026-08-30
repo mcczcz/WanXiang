@@ -1,6 +1,6 @@
 {
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
-  "version": 18,
+  "version": 19,
 
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
@@ -127,6 +127,16 @@
       "cooldownSeconds": 40,
       // 最近一次服务端 tick 耗时超过此值（单位：毫秒）时触发阈值清理；0 表示关闭。
       "maxMspt": 0.0
+    },
+    "droppedItem": {
+      // age 从 6000 向下递减；大于此值时视为刚生成并予以保护。0 表示关闭。
+      "protectAboveAge": 5900,
+      // 贵重物品白名单；匹配完整物品标识的掉落物始终保留。
+      "whitelist": [
+        "minecraft:diamond",
+        "minecraft:netherite_ingot",
+        "minecraft:nether_star"
+      ]
     },
     "filter": {
       // whitelist=只清理名单内类型/family；blacklist=名单内受保护，其余清理。
