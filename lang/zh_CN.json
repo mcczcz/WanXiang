@@ -117,5 +117,9 @@
     "entity_cleaner_command.confirm_button": "确定清理",
     "entity_cleaner_command.cancel_button": "取消",
     "entity_cleaner_command.no_candidates": "没有实体符合当前清理条件（请检查本次名单过滤、持久化实体和玩家附近实体的保留设置）。",
-    "entity_cleaner_command.cleaned": "手动实体清理完成：已清理 {} 个实体。"
+    "entity_cleaner_command.cleaned": "手动实体清理完成：已清理 {} 个实体。",
+    "mspt_command.description": "查看当前服务器 MSPT 和 TPS。",
+    "mspt_command.registered": "已注册 MSPT/TPS 查询命令：/mspt。",
+    "mspt_command.enable_failed": "MSPT/TPS 查询命令注册失败。",
+    "mspt_command.result": "当前 MSPT：{:.2f} ms，TPS：{:.2f}"
 }

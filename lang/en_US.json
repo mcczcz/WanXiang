@@ -117,5 +117,9 @@
     "entity_cleaner_command.confirm_button": "Confirm cleanup",
     "entity_cleaner_command.cancel_button": "Cancel",
     "entity_cleaner_command.no_candidates": "No entities match the current cleanup conditions (check the one-time list filter, persistent, and near-player retention settings).",
-    "entity_cleaner_command.cleaned": "Manual entity cleanup finished: removed {} entities."
+    "entity_cleaner_command.cleaned": "Manual entity cleanup finished: removed {} entities.",
+    "mspt_command.description": "View the current server MSPT and TPS.",
+    "mspt_command.registered": "Registered the MSPT/TPS query command: /mspt.",
+    "mspt_command.enable_failed": "Failed to register the MSPT/TPS query command.",
+    "mspt_command.result": "Current MSPT: {:.2f} ms, TPS: {:.2f}"
 }

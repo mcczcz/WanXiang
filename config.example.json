@@ -1,6 +1,6 @@
 {
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
-  "version": 19,
+  "version": 20,
 
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
@@ -13,6 +13,8 @@
   "autoFishingEnable": true,
   // 注册原版 /ability 命令。
   "abilityCommandEnable": true,
+  // 注册 /mspt 命令，供玩家查看当前 MSPT 和 TPS。
+  "msptCommandEnable": true,
   // 区块加载时清理无法识别的方块。操作不可恢复。
   "cleanUnknownBlocksEnable": true,
   // 向非管理员隐藏客户端显示的 OP 权限信息。

@@ -9,6 +9,7 @@
 | `trustedSkinEnable` | 将玩家皮肤标记为可信任皮肤 | `true` |
 | `autoFishingEnable` | 钓鱼成功后自动收杆并重新抛竿 | `true` |
 | `abilityCommandEnable` | 强制注册原版 `/ability` 命令 | `true` |
+| `msptCommandEnable` | 注册 `/mspt` MSPT/TPS 查询命令 | `true` |
 | `cleanUnknownBlocksEnable` | 区块加载时清理无法识别的方块 | `true` |
 | `unloadedEntitiesCleaner` | 开服时清理未加载的实体数据（仅执行一次） | `enable=true` |
 | `hideOpPermissionEnable` | 对非管理员隐藏客户端的 OP 权限信息 | `true` |
@@ -50,13 +51,14 @@
 
 ```json
 {
-    "version": 19,
+    "version": 20,
     "logLevel": 3,
     "language": "zh_CN",
 
     "trustedSkinEnable": true,
     "autoFishingEnable": true,
     "abilityCommandEnable": true,
+    "msptCommandEnable": true,
     "cleanUnknownBlocksEnable": true,
     "hideOpPermissionEnable": true,
 
@@ -179,6 +181,7 @@
     "trustedSkinEnable": false,
     "autoFishingEnable": false,
     "abilityCommandEnable": false,
+    "msptCommandEnable": false,
     "cleanUnknownBlocksEnable": false,
     "hideOpPermissionEnable": false
 }
@@ -187,9 +190,14 @@
 - **可信任皮肤（`trustedSkinEnable`）**：将服务端判定的玩家皮肤标记为可信任皮肤。只影响皮肤信任标记，不会修改皮肤文件。
 - **自动钓鱼（`autoFishingEnable`）**：鱼钩成功钓到物品后自动执行收杆/重新抛竿动作。玩家仍需正常抛出鱼竿，建议先在测试世界验证与其他钓鱼插件的兼容性。
 - **Ability 命令（`abilityCommandEnable`）**：在服务端注册原版 `/ability` 命令，即使当前不是教育版模式也会尝试注册。启用后可按原版语法使用，例如 `/ability Steve mayfly true`。
+- **MSPT/TPS 命令（`msptCommandEnable`）**：注册 `/mspt` 查询命令。关闭后不会注册该命令。
 - **未知方块清理（`cleanUnknownBlocksEnable`）**：区块加载时，将被游戏标记为“无法识别状态”的方块替换为空气，并在日志中记录清理数量。该操作不可恢复，建议先备份世界。
 - **未加载实体清理（`unloadedEntitiesCleaner`）**：服务端启动完成后扫描世界数据库中的实体记录并清理，默认删除全部未加载实体，每次进程启动只执行一次。将 `entityTypeNamesToClean` 设置为非空数组可限制清理的实体类型（例如 `minecraft:item`）；该操作不可恢复，建议先备份世界。
 - **隐藏 OP 权限（`hideOpPermissionEnable`）**：向非 OP 客户端发送能力数据包时，将玩家权限伪装为普通成员；OP 玩家收到原始权限数据。它只隐藏客户端显示，不会真正改变服务端权限。
+
+### MSPT/TPS 查询命令：`/mspt`
+
+玩家执行 `/mspt` 可查看最近一次服务端 tick 的耗时（MSPT）和按该耗时计算的 TPS。TPS 最高显示为 20；服务器尚未完成 tick 统计时显示为 20 TPS、0 MSPT。
 
 ### 掉落物存在时间：`droppedItemLifetime`
 

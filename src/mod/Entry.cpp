@@ -15,6 +15,7 @@
 #include "mod/FastLeafDecay.h"
 #include "mod/HideOpPermission.h"
 #include "mod/MobEffectBlocker.h"
+#include "mod/MsptCommand.h"
 #include "mod/ResourcePackOverlay.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
@@ -257,6 +258,26 @@ bool Entry::enable() {
         logger.error(tr("entity_cleaner_command.enable_failed"));
         return false;
     }
+    if (!mspt_command::enable()) {
+        entity_cleaner_command::disable();
+        entity_cleaner::disable();
+        dropped_item_lifetime::disable();
+        unloaded_entities_cleaner::disable();
+        client_level_name::disable();
+        explosion_control::disable();
+        server_pong::disable();
+        scheduled_command::disable();
+        hide_op_permission::disable();
+        clean_unknown_blocks::disable();
+        fast_leaf_decay::disable();
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        resource_pack_overlay::disable();
+        logger.error(tr("mspt_command.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -281,6 +302,7 @@ bool Entry::disable() {
     resource_pack_overlay::disable();
     ability_command::disable();
     entity_cleaner_command::disable();
+    mspt_command::disable();
     command_permission::disable();
     logger.info(tr("plugin.unloaded"));
     return true;
@@ -305,6 +327,7 @@ bool Entry::unload() {
     resource_pack_overlay::disable();
     ability_command::disable();
     entity_cleaner_command::disable();
+    mspt_command::disable();
     command_permission::disable();
     return true;
 }

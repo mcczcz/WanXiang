@@ -181,12 +181,13 @@ struct EntityCleanerConfig {
 };
 
 struct Config {
-    int                           version                  = 19;
+    int                           version                  = 20;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "en_US";
     bool                          trustedSkinEnable        = true;
     bool                          autoFishingEnable        = true;
     bool                          abilityCommandEnable     = true;
+    bool                          msptCommandEnable        = true;
     bool                          cleanUnknownBlocksEnable = true;
     bool                          hideOpPermissionEnable   = true;
     DroppedItemLifetimeConfig     droppedItemLifetime{};
