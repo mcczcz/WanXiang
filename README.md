@@ -22,7 +22,6 @@
 | `serverPong` | 修改服务器列表中的 MOTD 和人数 | `enable=false` |
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
 | `entityCleaner` | 定时或超量时清理运行中的实体，清理前全服预告 | `enable=false` |
-| `markPacksAsAddon` / `forceResourcePackRequired` | 调整服务端资源包的叠加和强制下载行为 | `true` / `false` |
 
 ## 安装
 
@@ -162,9 +161,7 @@
             "secondsBefore": [10, 5, 3]
         },
         "logResult": true
-    },
-    "markPacksAsAddon": true,
-    "forceResourcePackRequired": false
+    }
 }
 ```
 
@@ -441,23 +438,6 @@
 ```
 
 只有在第二个表单点击“确定清理”后才会执行。玩家始终不会被清理。此命令针对所有已加载维度的实体，且是明确确认的手动操作，不受自动清理的 `enable` 或 `dryRun` 开关影响。
-
-### 资源包叠加与强制下载
-
-这两个字段位于配置顶层，不属于对象：
-
-```json
-{
-    "markPacksAsAddon": true,
-    "forceResourcePackRequired": false
-}
-```
-
-- `markPacksAsAddon=true`：将服务端资源包标记为 Add-on，使客户端资源包与服务端资源包可以叠加。
-- `forceResourcePackRequired=true`：要求客户端下载并使用服务端资源包。
-- 两者都为 `false` 时，资源包数据包不会被修改。
-
-如果服务器只想允许资源包共存而不强制下载，保持上面的默认组合即可；如果资源包必须生效，再将 `forceResourcePackRequired` 改为 `true`。修改后需要重启，客户端也可能需要重新连接才能看到效果。
 
 ## 从源码构建
 

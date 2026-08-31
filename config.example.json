@@ -185,11 +185,6 @@
     "logResult": true
   },
 
-  // 将服务端资源包标记为 Add-on，使客户端资源包可以与其叠加。
-  "markPacksAsAddon": true,
-  // 是否强制客户端下载并使用服务端资源包。
-  "forceResourcePackRequired": false,
-
   // 爆炸控制。规则按顺序应用；可选覆盖字段为 null 时保持原版值。
   "explosionControl": {
     "enable": false,

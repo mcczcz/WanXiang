@@ -201,8 +201,6 @@ struct Config {
     ClientLevelNameConfig         clientLevelName{};
     ExplosionControlConfig        explosionControl{};
     EntityCleanerConfig           entityCleaner{};
-    bool                          markPacksAsAddon          = true;
-    bool                          forceResourcePackRequired = false;
 };
 
 } // namespace my_mod

@@ -29,7 +29,6 @@
     "example.player_join_log": "[示例] 玩家加入: {}",
     "example.player_join_welcome": "[示例] 欢迎来到服务器，{}！",
     "trusted_skin.enable_failed": "可信任皮肤 Hook 注册失败。",
-    "resource_pack_overlay.enable_failed": "客户端与服务端资源包叠加 Hook 注册失败。",
     "auto_fishing.enable_failed": "自动钓鱼 Hook 注册失败。",
     "ability_command.enable_failed": "原版 ability 命令 Hook 注册失败。",
     "ability_command.registered": "已强制注册原版 ability 命令。",

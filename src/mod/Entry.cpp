@@ -16,7 +16,6 @@
 #include "mod/HideOpPermission.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/MsptCommand.h"
-#include "mod/ResourcePackOverlay.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
 #include "mod/TrustedSkin.h"
@@ -74,25 +73,18 @@ bool Entry::load() {
 bool Entry::enable() {
     getSelf().getLogger().debug("Enabling...");
 
-    if (!resource_pack_overlay::enable()) {
-        logger.error(tr("resource_pack_overlay.enable_failed"));
-        return false;
-    }
     if (!trusted_skin::enable()) {
-        resource_pack_overlay::disable();
         logger.error(tr("trusted_skin.enable_failed"));
         return false;
     }
     if (!auto_fishing::enable()) {
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("auto_fishing.enable_failed"));
         return false;
     }
     if (!xp_orb_merge::enable()) {
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("xp_orb_merge.enable_failed"));
         return false;
     }
@@ -100,7 +92,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("mob_effect_blocker.enable_failed"));
         return false;
     }
@@ -109,7 +100,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("fast_leaf_decay.enable_failed"));
         return false;
     }
@@ -119,7 +109,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("clean_unknown_blocks.enable_failed"));
         return false;
     }
@@ -130,7 +119,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("unloaded_entities_cleaner.enable_failed"));
         return false;
     }
@@ -142,7 +130,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("hide_op_permission.enable_failed"));
         return false;
     }
@@ -155,7 +142,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("scheduled_command.enable_failed"));
         return false;
     }
@@ -169,7 +155,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("server_pong.enable_failed"));
         return false;
     }
@@ -184,7 +169,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error("Failed to enable explosion control");
         return false;
     }
@@ -200,7 +184,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("client_level_name.enable_failed"));
         return false;
     }
@@ -217,7 +200,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("dropped_item_lifetime.enable_failed"));
         return false;
     }
@@ -235,7 +217,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("entity_cleaner.enable_failed"));
         return false;
     }
@@ -254,7 +235,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("entity_cleaner_command.enable_failed"));
         return false;
     }
@@ -274,7 +254,6 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        resource_pack_overlay::disable();
         logger.error(tr("mspt_command.enable_failed"));
         return false;
     }
@@ -299,7 +278,6 @@ bool Entry::disable() {
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
-    resource_pack_overlay::disable();
     ability_command::disable();
     entity_cleaner_command::disable();
     mspt_command::disable();
@@ -324,7 +302,6 @@ bool Entry::unload() {
     xp_orb_merge::disable();
     auto_fishing::disable();
     trusted_skin::disable();
-    resource_pack_overlay::disable();
     ability_command::disable();
     entity_cleaner_command::disable();
     mspt_command::disable();

@@ -29,7 +29,6 @@
     "example.player_join_log": "[Example] Player joined: {}",
     "example.player_join_welcome": "[Example] Welcome to the server, {}!",
     "trusted_skin.enable_failed": "Failed to register the trusted-skin hook.",
-    "resource_pack_overlay.enable_failed": "Failed to register the client/server resource-pack overlay hook.",
     "auto_fishing.enable_failed": "Failed to register the auto-fishing hook.",
     "ability_command.enable_failed": "Failed to register the vanilla ability command hook.",
     "ability_command.registered": "Force-registered the vanilla ability command.",
