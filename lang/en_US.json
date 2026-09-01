@@ -64,6 +64,7 @@
     "scheduled_command.enable_failed": "Failed to register the scheduled-command event.",
     "server_pong.enable_failed": "Failed to register the server-list spoofing event.",
     "client_level_name.enable_failed": "Failed to register the client world-name hook.",
+    "co_resource_pack.enable_failed": "Failed to register the resource-pack coexistence hooks.",
     "scheduled_command.registered": "Registered {} scheduled command(s).",
     "scheduled_command.empty_command": "Skipped a scheduled task with an empty command.",
     "scheduled_command.invalid_cron": "Invalid Cron expression: {} (command: {}): {}",

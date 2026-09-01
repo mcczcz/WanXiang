@@ -81,6 +81,23 @@ struct ClientLevelNameConfig {
     std::string name   = {};
 };
 
+// 资源包共存：让服务器材质包和玩家自己启用的材质包同时生效。
+//
+// 原版把「必须下载服务器材质包」和「进服后禁用玩家自己的材质包」绑成了一件事，
+// 三个开关分别对应拆开它所需要改的三个封包字段，可以单独关掉任意一项：
+//   forceRequired    -> ResourcePacksInfoPacket 里的 mResourcePackRequired，
+//                       置 true 让客户端必须下载服务器的包。
+//   markAsAddonPack  -> 每个 PackInfoData 的 mIsAddonPack，置 true 让客户端
+//                       把它们当作服务器附带内容，而不是玩家自选的材质包。
+//   allowClientPacks -> StartGamePacket 里 LevelSettings 的 mTexturePacksRequired，
+//                       置 false 让客户端不要因为「世界要求材质包」而踢掉玩家自己的包。
+struct CoResourcePackConfig {
+    bool enable           = false;
+    bool forceRequired    = true;
+    bool markAsAddonPack  = true;
+    bool allowClientPacks = true;
+};
+
 struct ExplosionRuleConfig {
     std::string sourceType = "minecraft:tnt";
     bool        cancel     = false;
@@ -181,7 +198,7 @@ struct EntityCleanerConfig {
 };
 
 struct Config {
-    int                           version                  = 20;
+    int                           version                  = 21;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "en_US";
     bool                          trustedSkinEnable        = true;
@@ -199,6 +216,7 @@ struct Config {
     CommandPermissionsConfig      commandPermissions{};
     ServerPongConfig              serverPong{};
     ClientLevelNameConfig         clientLevelName{};
+    CoResourcePackConfig          coResourcePack{};
     ExplosionControlConfig        explosionControl{};
     EntityCleanerConfig           entityCleaner{};
 };

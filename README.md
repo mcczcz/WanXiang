@@ -21,6 +21,7 @@
 | `commandPermissions` | 覆盖命令注册时的权限等级 | `enable=false` |
 | `serverPong` | 修改服务器列表中的 MOTD 和人数 | `enable=false` |
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
+| `coResourcePack` | 服务器材质包与玩家自己的材质包共存 | `enable=false` |
 | `entityCleaner` | 定时或超量时清理运行中的实体，清理前全服预告 | `enable=false` |
 
 ## 安装
@@ -112,6 +113,12 @@
     "clientLevelName": {
         "enable": false,
         "name": ""
+    },
+    "coResourcePack": {
+        "enable": false,
+        "forceRequired": true,
+        "markAsAddonPack": true,
+        "allowClientPacks": true
     },
     "entityCleaner": {
         "enable": false,
@@ -345,6 +352,35 @@
     "name": "我的服务器"
 }
 ```
+
+### 资源包共存：`coResourcePack`
+
+让服务器下发的材质包和玩家自己在客户端启用的材质包同时生效。
+
+原版协议里，「客户端必须下载服务器材质包」和「进服后禁用玩家自己的材质包」共用同一个来源（`server.properties` 的 `texturepack-required`），开一个就等于开另一个。本功能在封包序列化的瞬间把这两件事拆开，一共只改三个字段：
+
+| 开关 | 改动的字段 | 作用 |
+| --- | --- | --- |
+| `forceRequired` | `ResourcePacksInfoPacket` 的 `mResourcePackRequired` 置 `true` | 客户端必须下载服务器的包，没有跳过选项 |
+| `markAsAddonPack` | 每个 `PackInfoData` 的 `mIsAddonPack` 置 `true` | 客户端把这些包当作服务器附带内容，而不是玩家自选的材质包 |
+| `allowClientPacks` | `StartGamePacket` 中 `LevelSettings` 的 `mTexturePacksRequired` 置 `false` | 客户端不再因为「世界要求材质包」而停用玩家自己的包 |
+
+三个开关默认全开，通常保持默认即可；单独关掉任意一个只影响对应的那一条。全部关掉时不会注册任何 Hook。
+
+```json
+"coResourcePack": {
+    "enable": true,
+    "forceRequired": true,
+    "markAsAddonPack": true,
+    "allowClientPacks": true
+}
+```
+
+注意事项：
+
+- `forceRequired=true` 会覆盖 `server.properties` 里的 `texturepack-required=false`，所有玩家都会被要求下载服务器材质包。不想强制下载就把它设为 `false`。
+- 改动只作用于发给客户端的封包，服务端自身的材质包配置和存档不受影响；写完封包后字段会立即还原，关闭功能后无残留。
+- 最终表现取决于客户端如何处理 `isAddonPack`，不同客户端版本可能有差异，建议上线前实测。
 
 ### 实体清理：`entityCleaner`
 
