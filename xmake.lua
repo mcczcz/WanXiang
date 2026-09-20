@@ -5,14 +5,14 @@ add_repositories("levimc-repo https://github.com/LiteLDev/xmake-repo.git")
 add_repositories("yyz-repo https://github.com/yangyangzhong82/xmake-repo.git")
 
 if is_config("target_type", "server") then
-    add_requires("levilamina 26.20.7", {configs = {target_type = "server"}})
+    add_requires("levilamina 26.40.6", {configs = {target_type = "server"}})
 else
-    add_requires("levilamina 26.20.7", {configs = {target_type = "client"}})
+    add_requires("levilamina 26.40.4", {configs = {target_type = "client"}})
 end
 
 add_requires("levibuildscript")
 add_requires("croncpp v2023.03.30")
-add_requires("catalyst")
+add_requires("catalyst 0.5.0")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")

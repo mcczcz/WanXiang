@@ -120,6 +120,12 @@ struct ExplosionControlConfig {
     std::vector<ExplosionRuleConfig> rules{};
 };
 
+struct MobBlockDestructionConfig {
+    bool enable  = true;
+    bool wither  = true;
+    bool ravager = true;
+};
+
 struct EntityCleanerScheduleConfig {
     bool        enable = false;
     std::string cron   = "0 */10 * * * *"; // 每 10 分钟
@@ -198,7 +204,7 @@ struct EntityCleanerConfig {
 };
 
 struct Config {
-    int                           version                  = 21;
+    int                           version                  = 22;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "en_US";
     bool                          trustedSkinEnable        = true;
@@ -217,7 +223,8 @@ struct Config {
     ServerPongConfig              serverPong{};
     ClientLevelNameConfig         clientLevelName{};
     CoResourcePackConfig          coResourcePack{};
-    ExplosionControlConfig        explosionControl{};
+    ExplosionControlConfig         explosionControl{};
+    MobBlockDestructionConfig      mobBlockDestruction{};
     EntityCleanerConfig           entityCleaner{};
 };
 

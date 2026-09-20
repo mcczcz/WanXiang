@@ -11,32 +11,50 @@
 #include "mc/world/item/ItemStack.h"
 
 #include <atomic>
+#include <mutex>
+#include <unordered_map>
 
 namespace my_mod::auto_fishing {
 namespace {
 
 std::atomic_bool enabled{false};
+std::mutex       hookTimersMutex;
+std::unordered_map<FishingHook const*, int> previousHookTimers;
+
+bool hasJustBeenHooked(FishingHook const* hook, int timer) {
+    std::scoped_lock lock{hookTimersMutex};
+    auto const [it, inserted] = previousHookTimers.emplace(hook, timer);
+    if (inserted) {
+        return false;
+    }
+    bool const hooked = it->second > 0 && timer <= 0;
+    it->second        = timer;
+    return hooked;
+}
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 LL_TYPE_INSTANCE_HOOK(
-    FishingHookedHook,
+    FishingHookPostNormalTickHook,
     ll::memory::HookPriority::Normal,
     FishingHook,
-    &FishingHook::_serverHooked,
-    bool
+    &FishingHook::postNormalTick,
+    void
 ) {
-    const bool result = origin();
-    if (!enabled.load(std::memory_order_relaxed) || !result || mTimeUntilHooked) {
-        return result;
+    origin();
+    if (!enabled.load(std::memory_order_relaxed) || !hasJustBeenHooked(this, mTimeUntilHooked)) {
+        return;
     }
 
     Player* player = getPlayerOwner();
     if (player == nullptr) {
-        return result;
+        return;
     }
 
-    GameMode& gameMode = player->getGameMode();
+    if (!player->mGameMode) {
+        return;
+    }
+    GameMode& gameMode = *player->mGameMode;
     gameMode.baseUseItem(const_cast<ItemStack&>(player->getSelectedItem()));
 
 
@@ -44,7 +62,6 @@ LL_TYPE_INSTANCE_HOOK(
     if (!recast.isNull()) {
         gameMode.baseUseItem(recast);
     }
-    return result;
 }
 #pragma clang diagnostic pop
 
@@ -57,7 +74,7 @@ bool enable() {
     if (enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (FishingHookedHook::hook() != 0) {
+    if (FishingHookPostNormalTickHook::hook() != 0) {
         return false;
     }
     enabled.store(true, std::memory_order_relaxed);
@@ -68,7 +85,9 @@ void disable() {
     if (!enabled.exchange(false, std::memory_order_relaxed)) {
         return;
     }
-    FishingHookedHook::unhook();
+    FishingHookPostNormalTickHook::unhook();
+    std::scoped_lock lock{hookTimersMutex};
+    previousHookTimers.clear();
 }
 
 } // namespace my_mod::auto_fishing

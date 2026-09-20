@@ -39,17 +39,20 @@ int cleanChunk(LevelChunk& levelChunk) {
         return 0;
     }
 
-    int const totalHeight = static_cast<int>(levelChunk.mDimension.getHeightInSubchunks()) * 16;
-    if (totalHeight <= 0) {
+    auto const& heightRange = levelChunk.mDimension.mHeightRange;
+    int const minHeight = heightRange->mMin;
+    int const maxHeight = heightRange->mMax;
+    if (maxHeight <= minHeight) {
         return 0;
     }
 
-    BlockChangeContext const changeContext = BlockChangeContext::structureChange();
-    int                      cleanedCount  = 0;
+    BlockChangeContext changeContext{};
+    *changeContext.mContextSource = StatelessBlockChangeContext::Structure;
+    int cleanedCount = 0;
 
     for (int x = 0; x < 16; ++x) {
         for (int z = 0; z < 16; ++z) {
-            for (int y = totalHeight - 1; y >= 0; --y) {
+            for (int y = maxHeight - 1; y >= minHeight; --y) {
                 ChunkBlockPos const pos{
                     static_cast<uchar>(x),
                     ChunkLocalHeight{static_cast<short>(y)},
@@ -82,7 +85,7 @@ LL_TYPE_INSTANCE_HOOK(
 ) {
     int const cleanedCount = cleanChunk(levelChunk);
     if (cleanedCount > 0) {
-        ChunkPos const& chunkPos = levelChunk.getPosition();
+        ChunkPos const& chunkPos = levelChunk.mPosition;
         logger.info(tr("clean_unknown_blocks.cleaned", cleanedCount, chunkPos.x, chunkPos.z));
     }
     return origin(levelChunk);

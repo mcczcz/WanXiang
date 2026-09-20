@@ -45,12 +45,11 @@ LL_TYPE_INSTANCE_HOOK(
         return origin(stream);
     }
 
-    auto& data  = *mData;
-    auto& packs = *data.mResourcePacks;
+    auto& packs = *mResourcePacks;
 
-    bool const flippedRequired = setting.forceRequired && !data.mResourcePackRequired;
+    bool const flippedRequired = setting.forceRequired && !mResourcePackRequired;
     if (flippedRequired) {
-        data.mResourcePackRequired = true;
+        mResourcePackRequired = true;
     }
 
     // 只记录被翻转过的下标：包里本来就是 addon 的那些必须保持原值，
@@ -71,7 +70,7 @@ LL_TYPE_INSTANCE_HOOK(
         packs[index].mIsAddonPack = false;
     }
     if (flippedRequired) {
-        data.mResourcePackRequired = false;
+        mResourcePackRequired = false;
     }
 }
 

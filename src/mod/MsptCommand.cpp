@@ -22,7 +22,7 @@ namespace {
 bool commandRegistered = false;
 
 double currentMspt() {
-    auto const tickTime = ProfilerLite::gProfilerLiteInstance().getServerTickTime();
+    auto const tickTime = *ProfilerLite::gProfilerLiteInstance().mDebugServerTickTime;
     if (tickTime <= std::chrono::nanoseconds::zero()) {
         return 0.0;
     }

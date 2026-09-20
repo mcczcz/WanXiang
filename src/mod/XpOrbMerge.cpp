@@ -13,6 +13,7 @@
 #include "mc/world/actor/DataItem.h"
 #include "mc/world/actor/SynchedActorData.h"
 #include "mc/world/actor/SynchedActorDataEntityWrapper.h"
+#include "mc/entity/components/SynchedActorDataComponent.h"
 #include "mc/world/level/Level.h"
 #include "mc/world/level/dimension/DimensionType.h"
 
@@ -34,19 +35,28 @@ constexpr ushort XpValueDataId = static_cast<ushort>(ActorDataIDs::Value);
 ll::event::ListenerPtr tickListener;
 std::uint64_t          elapsedTicks = 0;
 
-int getXp(Actor const& orb) { return orb.getEntityData().getInt(XpValueDataId); }
+int getXp(Actor const& orb) { return orb.mEntityData->getInt(XpValueDataId); }
 
 bool setXp(Actor& orb, std::int64_t value) {
     constexpr auto minXp = static_cast<std::int64_t>(std::numeric_limits<int>::min());
     constexpr auto maxXp = static_cast<std::int64_t>(std::numeric_limits<int>::max());
     int            xp    = static_cast<int>(std::clamp(value, minXp, maxXp));
 
-    auto&     entityData = orb.getEntityData();
-    DataItem* item       = entityData._get()->_find(XpValueDataId);
-    if (item == nullptr || !item->setData(std::move(xp))) {
+    auto& entityData = *orb.mEntityData;
+    auto& actorData  = *entityData.mData->mData;
+    bool  updated    = false;
+    for (auto& item : *actorData.mItemsArray) {
+        if (item != nullptr && item->getId() == XpValueDataId) {
+            if (!item->setData(static_cast<int&&>(xp))) {
+                return false;
+            }
+            updated = true;
+            break;
+        }
+    }
+    if (!updated) {
         return false;
     }
-
     entityData.markDirty(XpValueDataId);
     return true;
 }
@@ -88,7 +98,7 @@ void mergeGroup(std::vector<Actor*> const& orbs, float radius, float radiusSquar
     std::vector<OrbEntry> entries;
     entries.reserve(orbs.size());
     for (Actor* orb : orbs) {
-        if (orb == nullptr || orb->isRemoved()) {
+        if (orb == nullptr || orb->mRemoved) {
             continue;
         }
         Vec3 const position = orb->getPosition();
@@ -193,7 +203,7 @@ void mergeAll(Level& level) {
 
     std::unordered_map<DimensionType, std::vector<Actor*>> groups;
     for (Actor* actor : level.getRuntimeActorList()) {
-        if (actor == nullptr || actor->isRemoved() || !actor->isType(ActorType::Experience)) {
+        if (actor == nullptr || actor->mRemoved || !actor->isType(ActorType::Experience)) {
             continue;
         }
         groups[actor->getDimensionId()].emplace_back(actor);

@@ -162,8 +162,8 @@ bool isStateProtected(Actor const& actor) {
     return (protection.named && !actor.getNameTag().empty())      //
         || (protection.tamed && actor.isTame())                   //
         || (protection.leashed && actor.isLeashed())              //
-        || (protection.vehicles && (actor.hasPassenger() || actor.isRiding()))
-        || (protection.persistent && actor.isPersistent());
+        || (protection.vehicles && (actor.hasPassenger() || actor.getVehicle() != nullptr))
+        || (protection.persistent && actor.hasComponent(HashedString{"minecraft:persistent"}));
 }
 
 // 第 3 层：管理员名单。
@@ -208,7 +208,7 @@ std::vector<Candidate> collectCandidates(Level& level) {
     // 玩家坐标按维度分桶，距离只在同维度内比较。
     std::unordered_map<DimensionType, std::vector<Vec3>> playersByDimension;
     level.forEachPlayer([&playersByDimension](Player& player) {
-        if (!player.isRemoved() && isFinitePosition(player.getPosition())) {
+        if (!player.mRemoved && isFinitePosition(player.getPosition())) {
             playersByDimension[player.getDimensionId()].emplace_back(player.getPosition());
         }
         return true;
@@ -217,7 +217,7 @@ std::vector<Candidate> collectCandidates(Level& level) {
     std::vector<Candidate> candidates;
     for (Actor* actor : level.getRuntimeActorList()) {
         // 玩家始终不进入清理候选，不能通过 entityCleaner 配置关闭这项保护。
-        if (actor == nullptr || actor->isRemoved() || actor->isPlayer()) {
+        if (actor == nullptr || actor->mRemoved || actor->isPlayer()) {
             continue;
         }
         if (isTypeProtected(*actor) || isStateProtected(*actor) || !matchesFilter(*actor)
@@ -285,7 +285,7 @@ void executeCleanup(Level& level, CleanupKind kind) {
     for (std::size_t i = 0; i < removeCount; ++i) {
         Actor* actor = candidates[i].actor;
         // 重新确认：collect 与本循环之间，级联移除（例如载具连带乘客）可能已经删掉它。
-        if (actor == nullptr || actor->isRemoved()) {
+        if (actor == nullptr || actor->mRemoved) {
             continue;
         }
         ++removedByType[actor->getTypeName()]; // 必须在 remove() 之前取名字

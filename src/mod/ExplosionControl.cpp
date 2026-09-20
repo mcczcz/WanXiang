@@ -43,28 +43,28 @@ void applyRule(Catalyst::ExplosionBeforeEvent& event, ExplosionRuleConfig const&
         event.breaking() = *rule.breaking;
     }
     if (rule.allowUnderwater.has_value()) {
-        explosion.setAllowUnderwater(*rule.allowUnderwater);
+        explosion.mAllowUnderwater = *rule.allowUnderwater;
     }
     if (rule.canToggleBlocks.has_value()) {
-        explosion.setCanToggleBlocks(*rule.canToggleBlocks);
+        explosion.mCanToggleBlocks = *rule.canToggleBlocks;
     }
     if (rule.damageScaling.has_value()) {
-        explosion.setDamageScaling(std::max(*rule.damageScaling, 0.0F));
+        explosion.mDamageScaling = std::max(*rule.damageScaling, 0.0F);
     }
     if (rule.ignoreBlockResistance.has_value()) {
-        explosion.setIgnoreBlockResistance(*rule.ignoreBlockResistance);
+        explosion.mIgnoreBlockExplosionResistance = *rule.ignoreBlockResistance;
     }
     if (rule.maxResistance.has_value()) {
-        explosion.setMaxResistance(std::max(*rule.maxResistance, 0.0F));
+        explosion.mMaxResistance = std::max(*rule.maxResistance, 0.0F);
     }
     if (rule.inWater.has_value()) {
-        explosion.overrideInWater(*rule.inWater);
+        explosion.mInWaterOverride = *rule.inWater;
     }
     if (rule.totalDamage.has_value()) {
         explosion.mTotalDamageOverride = std::max(*rule.totalDamage, 0);
     }
     if (rule.knockbackScaling.has_value()) {
-        explosion.setKnockbackScaling(std::max(*rule.knockbackScaling, 0.0F));
+        explosion.mKnockbackScaling = std::max(*rule.knockbackScaling, 0.0F);
     }
 }
 

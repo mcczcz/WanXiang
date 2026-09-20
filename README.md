@@ -22,6 +22,7 @@
 | `serverPong` | 修改服务器列表中的 MOTD 和人数 | `enable=false` |
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
 | `coResourcePack` | 服务器材质包与玩家自己的材质包共存 | `enable=false` |
+| `mobBlockDestruction` | 禁止凋灵和掠夺兽破坏方块 | `enable=true` |
 | `entityCleaner` | 定时或超量时清理运行中的实体，清理前全服预告 | `enable=false` |
 
 ## 安装
@@ -51,7 +52,7 @@
 
 ```json
 {
-    "version": 20,
+    "version": 22,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -120,6 +121,11 @@
         "markAsAddonPack": true,
         "allowClientPacks": true
     },
+    "mobBlockDestruction": {
+        "enable": true,
+        "wither": true,
+        "ravager": true
+    },
     "entityCleaner": {
         "enable": false,
         "dryRun": false,
@@ -169,6 +175,18 @@
         },
         "logResult": true
     }
+}
+```
+
+### 生物方块破坏：`mobBlockDestruction`
+
+默认阻止凋灵和掠夺兽通过其原版行为破坏方块。总开关或单个实体开关设为 `false` 后，重启服务器即可恢复对应行为。
+
+```json
+"mobBlockDestruction": {
+    "enable": true,
+    "wither": true,
+    "ravager": true
 }
 ```
 

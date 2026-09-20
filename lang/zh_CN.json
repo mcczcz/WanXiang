@@ -65,6 +65,7 @@
     "server_pong.enable_failed": "服务器列表信息伪造事件注册失败。",
     "client_level_name.enable_failed": "客户端存档名称 Hook 注册失败。",
     "co_resource_pack.enable_failed": "资源包共存 Hook 注册失败。",
+    "mob_block_destruction.enable_failed": "生物方块破坏事件注册失败。",
     "scheduled_command.registered": "已注册 {} 个定时命令。",
     "scheduled_command.empty_command": "已跳过命令内容为空的定时任务。",
     "scheduled_command.invalid_cron": "Cron 表达式无效：{}（命令：{}）：{}",

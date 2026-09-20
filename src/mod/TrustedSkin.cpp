@@ -6,7 +6,9 @@
 
 #include "ll/api/memory/Hook.h"
 #include "mc/network/ServerNetworkHandler.h"
+#include "mc/world/actor/player/SerializedSkinImpl.h"
 #include "mc/world/actor/player/SerializedSkinRef.h"
+#include "mc/world/actor/player/TrustedSkinFlag.h"
 
 #include <atomic>
 
@@ -17,7 +19,7 @@ std::atomic_bool enabled{false};
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
-LL_TYPE_INSTANCE_HOOK(
+LL_TYPE_STATIC_HOOK(
     DecideIfSkinIsTrustedHook,
     ll::memory::HookPriority::Normal,
     ServerNetworkHandler,
@@ -27,7 +29,9 @@ LL_TYPE_INSTANCE_HOOK(
 ) {
     origin(skin);
     if (enabled.load(std::memory_order_relaxed)) {
-        skin.setIsTrustedSkin(true);
+        if (skin.mSkinImpl) {
+            skin.mSkinImpl->mObject.mIsTrustedSkin = TrustedSkinFlag::True;
+        }
     }
 }
 #pragma clang diagnostic pop

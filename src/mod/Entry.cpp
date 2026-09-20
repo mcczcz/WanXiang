@@ -15,6 +15,7 @@
 #include "mod/ExplosionControl.h"
 #include "mod/FastLeafDecay.h"
 #include "mod/HideOpPermission.h"
+#include "mod/MobBlockDestruction.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/MsptCommand.h"
 #include "mod/ScheduledCommand.h"
@@ -278,6 +279,27 @@ bool Entry::enable() {
         logger.error(tr("co_resource_pack.enable_failed"));
         return false;
     }
+    if (!mob_block_destruction::enable()) {
+        co_resource_pack::disable();
+        mspt_command::disable();
+        entity_cleaner_command::disable();
+        entity_cleaner::disable();
+        dropped_item_lifetime::disable();
+        unloaded_entities_cleaner::disable();
+        client_level_name::disable();
+        explosion_control::disable();
+        server_pong::disable();
+        scheduled_command::disable();
+        hide_op_permission::disable();
+        clean_unknown_blocks::disable();
+        fast_leaf_decay::disable();
+        mob_effect_blocker::disable();
+        xp_orb_merge::disable();
+        auto_fishing::disable();
+        trusted_skin::disable();
+        logger.error(tr("mob_block_destruction.enable_failed"));
+        return false;
+    }
 
     logger.info(tr("plugin.enabled"));
     return true;
@@ -285,6 +307,7 @@ bool Entry::enable() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    mob_block_destruction::disable();
     co_resource_pack::disable();
     entity_cleaner::disable();
     dropped_item_lifetime::disable();
@@ -310,6 +333,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    mob_block_destruction::disable();
     co_resource_pack::disable();
     entity_cleaner::disable();
     dropped_item_lifetime::disable();

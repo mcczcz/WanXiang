@@ -13,6 +13,7 @@
 #include "mc/server/commands/CommandOutput.h"
 #include "mc/server/commands/CommandPermissionLevel.h"
 #include "mc/deps/ecs/WeakEntityRef.h"
+#include "mc/deps/core/string/HashedString.h"
 #include "mc/world/actor/Actor.h"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
@@ -63,20 +64,12 @@ bool isFinitePosition(Vec3 const& position) {
 std::vector<Actor*> collectLoadedActors(Level& level) {
     std::vector<Actor*> actors;
     std::unordered_set<Actor*> seen;
-    // Each loaded dimension owns its entity map. Traverse all of them so the
-    // manual panel and cleanup are independent of the command player's dimension.
-    level.forEachDimension([&actors, &seen](Dimension& dimension) {
-        auto& entityMap = dimension.getEntityIdMap();
-        actors.reserve(actors.size() + entityMap.size());
-        for (auto const& [actorId, entityRef] : entityMap) {
-            (void)actorId;
-            auto const actor = entityRef.tryUnwrap<Actor>();
-            if (Actor* const ptr = actor.as_ptr(); ptr != nullptr && seen.insert(ptr).second) {
-                actors.push_back(ptr);
-            }
+    // 40.x exposes the loaded actor list through Level rather than each Dimension.
+    for (Actor* const actor : level.getRuntimeActorList()) {
+        if (actor != nullptr && seen.insert(actor).second) {
+            actors.push_back(actor);
         }
-        return true;
-    });
+    }
     return actors;
 }
 
@@ -85,7 +78,7 @@ std::map<std::string, std::size_t> collectEntityCounts(Level& level) {
     std::map<std::string, std::size_t> counts;
     for (Actor* actor : actors) {
         // 手动面板展示所有已加载维度的完整实体列表，不套用自动清理的名单或保护规则。
-        if (actor == nullptr || actor->isRemoved() || actor->isPlayer()) {
+        if (actor == nullptr || actor->mRemoved || actor->isPlayer()) {
             continue;
         }
         std::string const& typeName = actor->getTypeName();
@@ -145,13 +138,10 @@ void executeManualCleanup(
     bool const        useRadius     = options.keepNearPlayers && std::isfinite(options.playerRadius)
                                 && options.playerRadius > 0.0F && std::isfinite(radiusSquared);
     if (useRadius) {
-        level.forEachDimension([&playerPositions](Dimension& dimension) {
-            dimension.forEachPlayer([&playerPositions](Player& other) {
-                if (!other.isRemoved() && isFinitePosition(other.getPosition())) {
-                    playerPositions[other.getDimensionId()].emplace_back(other.getPosition());
-                }
-                return true;
-            });
+        level.forEachPlayer([&playerPositions](Player& other) {
+            if (!other.mRemoved && isFinitePosition(other.getPosition())) {
+                playerPositions[other.getDimensionId()].emplace_back(other.getPosition());
+            }
             return true;
         });
     }
@@ -159,7 +149,7 @@ void executeManualCleanup(
     std::map<std::string, int> removedByType;
     int                       removed = 0;
     for (Actor* actor : actors) {
-        if (actor == nullptr || actor->isRemoved() || actor->isPlayer()) {
+        if (actor == nullptr || actor->mRemoved || actor->isPlayer()) {
             continue;
         }
 
@@ -182,8 +172,8 @@ void executeManualCleanup(
         }
         if ((options.keepNamed && !actor->getNameTag().empty()) || (options.keepTamed && actor->isTame())
             || (options.keepLeashed && actor->isLeashed())
-            || (options.keepVehicles && (actor->hasPassenger() || actor->isRiding()))
-            || (options.keepPersistent && actor->isPersistent())) {
+            || (options.keepVehicles && (actor->hasPassenger() || actor->getVehicle() != nullptr))
+            || (options.keepPersistent && actor->hasComponent(HashedString{"minecraft:persistent"}))) {
             continue;
         }
 
@@ -363,7 +353,6 @@ void executeCommand(CommandOrigin const& origin, CommandOutput& output) {
     }
 
     showSelectionForm(player);
-    output.success();
 }
 
 bool registerCommand() {

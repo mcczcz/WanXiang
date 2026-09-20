@@ -98,11 +98,11 @@ void forceDecayCheck(BlockSource& region, BlockPos const& pos) {
     // 而 randomTick 是非虚成员函数，所以这里的下行转换是安全的。
     auto const& leaves = static_cast<LeavesBlock const&>(block.getBlockType());
 
-    BlockEvents::BlockRandomTickEvent event{region, pos, Random::mThreadLocalRandom()};
+    BlockEvents::BlockRandomTickEvent event{pos, region, Random::mThreadLocalRandom()};
     leaves.randomTick(event);
 }
 
-void scheduleDecayCheck(WeakRef<Dimension> const& dimensionRef, DimensionType dimension, BlockPos const& pos) {
+void scheduleDecayCheck(WeakRef<BlockSource> const& regionRef, DimensionType dimension, BlockPos const& pos) {
     PendingKey const key{dimension, pos.x, pos.y, pos.z};
 
     {
@@ -116,7 +116,7 @@ void scheduleDecayCheck(WeakRef<Dimension> const& dimensionRef, DimensionType di
     }
 
     auto handle = ll::thread::ServerThreadExecutor::getDefault().executeAfter(
-        [dimensionRef, key, pos] {
+        [regionRef, key, pos] {
             {
                 std::lock_guard const lock{pendingMutex};
                 // 先摘掉自己，再去 randomTick。腐烂会递归触发 onRemove -> scheduleDecayCheck，
@@ -130,12 +130,12 @@ void scheduleDecayCheck(WeakRef<Dimension> const& dimensionRef, DimensionType di
 
             // 维度可能在这几刻里被卸载。GME 那份实现直接把 BlockSource& 捕获进 lambda，
             // 世界一关就是野指针；这里改成每次重新解引用。
-            auto dimension = dimensionRef.lock();
-            if (!dimension) {
+            auto region = regionRef.lock();
+            if (!region) {
                 return;
             }
 
-            forceDecayCheck(dimension->getBlockSourceFromMainChunkSource(), pos);
+            forceDecayCheck(*region, pos);
         },
         TickDuration * randomDelayTicks()
     );
@@ -163,7 +163,7 @@ void wakeNeighbourLeaves(BlockSource& region, BlockPos const& origin) {
         return;
     }
 
-    WeakRef<Dimension> const dimensionRef = dimension.getWeakRef();
+    WeakRef<BlockSource> const regionRef = region.getWeakRef();
     DimensionType const      dimensionId  = region.getDimensionId();
 
     for (int dx = -1; dx <= 1; ++dx) {
@@ -177,7 +177,7 @@ void wakeNeighbourLeaves(BlockSource& region, BlockPos const& origin) {
                 if (!isLeaves(region.getBlock(pos))) {
                     continue;
                 }
-                scheduleDecayCheck(dimensionRef, dimensionId, pos);
+                scheduleDecayCheck(regionRef, dimensionId, pos);
             }
         }
     }

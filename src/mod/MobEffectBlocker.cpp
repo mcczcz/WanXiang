@@ -6,7 +6,7 @@
 
 #include "ll/api/memory/Hook.h"
 #include "mc/world/effect/MobEffect.h"
-#include "mc/world/effect/MobEffectInstance.h"
+#include "mc/world/effect/MobEffectIds.h"
 
 #include <atomic>
 
@@ -15,19 +15,19 @@ namespace {
 
 std::atomic_bool enabled{false};
 
-bool hasEffectId(MobEffect const* target, uint effectId) { return target != nullptr && target->getId() == effectId; }
+bool hasEffectId(uint effectId, MobEffectIds target) { return effectId == static_cast<uint>(target); }
 
-bool shouldSuppressOnDeath(MobEffectInstance const& effect) {
+bool shouldSuppressOnDeath(MobEffect const& effect) {
     auto const& blockerConfig = config.mobEffectBlocker;
-    auto const  effectId      = effect.getId();
+    auto const  effectId      = effect.mId;
 
-    return (blockerConfig.weaving && hasEffectId(MobEffect::WEAVING(), effectId))
-        || (blockerConfig.oozing && hasEffectId(MobEffect::OOZING(), effectId))
-        || (blockerConfig.windCharged && hasEffectId(MobEffect::WIND_CHARGED(), effectId));
+    return (blockerConfig.weaving && hasEffectId(effectId, MobEffectIds::Weaving))
+        || (blockerConfig.oozing && hasEffectId(effectId, MobEffectIds::Oozing))
+        || (blockerConfig.windCharged && hasEffectId(effectId, MobEffectIds::WindCharged));
 }
 
-bool shouldSuppressOnHurt(MobEffectInstance const& effect) {
-    return config.mobEffectBlocker.infested && hasEffectId(MobEffect::INFESTED(), effect.getId());
+bool shouldSuppressOnHurt(MobEffect const& effect) {
+    return config.mobEffectBlocker.infested && hasEffectId(effect.mId, MobEffectIds::Infested);
 }
 
 #pragma clang diagnostic push
@@ -35,31 +35,33 @@ bool shouldSuppressOnHurt(MobEffectInstance const& effect) {
 LL_TYPE_INSTANCE_HOOK(
     EffectOnActorDiedHook,
     ll::memory::HookPriority::Normal,
-    MobEffectInstance,
-    &MobEffectInstance::onActorDied,
+    MobEffect,
+    &MobEffect::$onActorDied,
     void,
-    Actor& actor
+    Actor& actor,
+    int   amplifier
 ) {
     if (enabled.load(std::memory_order_relaxed) && shouldSuppressOnDeath(*this)) {
         return;
     }
-    origin(actor);
+    origin(actor, amplifier);
 }
 
 LL_TYPE_INSTANCE_HOOK(
     EffectOnActorHurtHook,
     ll::memory::HookPriority::Normal,
-    MobEffectInstance,
-    &MobEffectInstance::onActorHurt,
+    MobEffect,
+    &MobEffect::$onActorHurt,
     void,
     Actor&                   actor,
+    int                      amplifier,
     ActorDamageSource const& source,
     float                    damage
 ) {
     if (enabled.load(std::memory_order_relaxed) && shouldSuppressOnHurt(*this)) {
         return;
     }
-    origin(actor, source, damage);
+    origin(actor, amplifier, source, damage);
 }
 #pragma clang diagnostic pop
 

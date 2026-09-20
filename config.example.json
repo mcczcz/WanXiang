@@ -1,6 +1,6 @@
 {
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
-  "version": 21,
+  "version": 22,
 
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
@@ -219,5 +219,12 @@
         "knockbackScaling": null
       }
     ]
+  },
+
+  // 生物方块破坏控制。用于禁止凋灵和掠夺兽破坏方块。
+  "mobBlockDestruction": {
+    "enable": true,
+    "wither": true,
+    "ravager": true
   }
 }

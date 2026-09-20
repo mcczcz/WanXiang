@@ -15,6 +15,7 @@
 #include "mc/world/actor/player/LayeredAbilities.h"
 
 #include <atomic>
+#include <utility>
 
 namespace my_mod::hide_op_permission {
 namespace {
@@ -36,12 +37,16 @@ UpdateAbilitiesPacket const* getOperatorAbilitiesPacket(Packet const& packet) {
     return abilitiesPacket;
 }
 
-UpdateAbilitiesPacket makeSanitizedPacket(UpdateAbilitiesPacket const& packet) {
-    LayeredAbilities abilities;
-    packet.mData->fillIn(abilities);
-    abilities.setPlayerPermissions(PlayerPermissionLevel::Member);
-    abilities.setCommandPermissions(CommandPermissionLevel::Any);
-    return UpdateAbilitiesPacket{packet.mData->getTargetPlayer(), abilities};
+template <class... Args>
+void sendSanitizedPacket(UpdateAbilitiesPacket const& packet, Args&&... args) {
+    auto& data                = const_cast<SerializedAbilitiesData&>(*packet.mData);
+    auto const playerPermission  = data.mPlayerPermissions;
+    auto const commandPermission = data.mCommandPermissions;
+    data.mPlayerPermissions      = PlayerPermissionLevel::Member;
+    data.mCommandPermissions     = CommandPermissionLevel::Any;
+    packet.sendToClient(std::forward<Args>(args)...);
+    data.mPlayerPermissions  = playerPermission;
+    data.mCommandPermissions = commandPermission;
 }
 
 void onSendPacket(Catalyst::SendPacketBeforeEvent& event) {
@@ -54,11 +59,10 @@ void onSendPacket(Catalyst::SendPacketBeforeEvent& event) {
         return;
     }
 
-    auto sanitized = makeSanitizedPacket(*packet);
     event.cancel();
 
     resendingSanitizedPacket = true;
-    sanitized.sendToClient(event.networkId(), event.subClientId());
+    sendSanitizedPacket(*packet, event.networkId(), event.subClientId());
     resendingSanitizedPacket = false;
 }
 
@@ -74,7 +78,6 @@ void onSendMultiplePacket(Catalyst::SendMultiplePacketBeforeEvent& event) {
 
     auto const& ids       = event.ids();
     auto const& players   = event.players();
-    auto        sanitized = makeSanitizedPacket(*packet);
 
     // The event normally keeps IDs and players aligned. If it does not, keep
     // the original send rather than risking a dropped packet for any client.
@@ -87,7 +90,7 @@ void onSendMultiplePacket(Catalyst::SendMultiplePacketBeforeEvent& event) {
     resendingSanitizedPacket = true;
     for (std::size_t index = 0; index < ids.size() && index < players.size(); ++index) {
         if (players[index] != nullptr && !players[index]->isOperator()) {
-            sanitized.sendToClient(ids[index]);
+            sendSanitizedPacket(*packet, ids[index]);
         } else {
             packet->sendToClient(ids[index]);
         }
