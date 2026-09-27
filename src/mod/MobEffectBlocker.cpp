@@ -5,8 +5,10 @@
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
-#include "mc/world/effect/MobEffect.h"
-#include "mc/world/effect/MobEffectIds.h"
+#include "mc/world/effect/InfestedMobEffect.h"
+#include "mc/world/effect/OozingMobEffect.h"
+#include "mc/world/effect/WeavingMobEffect.h"
+#include "mc/world/effect/WindChargedMobEffect.h"
 
 #include <atomic>
 
@@ -15,50 +17,67 @@ namespace {
 
 std::atomic_bool enabled{false};
 
-bool hasEffectId(uint effectId, MobEffectIds target) { return effectId == static_cast<uint>(target); }
-
-bool shouldSuppressOnDeath(MobEffect const& effect) {
-    auto const& blockerConfig = config.mobEffectBlocker;
-    auto const  effectId      = effect.mId;
-
-    return (blockerConfig.weaving && hasEffectId(effectId, MobEffectIds::Weaving))
-        || (blockerConfig.oozing && hasEffectId(effectId, MobEffectIds::Oozing))
-        || (blockerConfig.windCharged && hasEffectId(effectId, MobEffectIds::WindCharged));
-}
-
-bool shouldSuppressOnHurt(MobEffect const& effect) {
-    return config.mobEffectBlocker.infested && hasEffectId(effect.mId, MobEffectIds::Infested);
-}
-
+// MobEffect 基类回调是 MCFOLD 空实现，共享地址可能被无关函数调用。
+// 必须 Hook 各效果的具体实现，否则既会误拦截，也无法覆盖派生类的行为。
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 LL_TYPE_INSTANCE_HOOK(
-    EffectOnActorDiedHook,
+    WeavingOnActorDiedHook,
     ll::memory::HookPriority::Normal,
-    MobEffect,
-    &MobEffect::$onActorDied,
+    WeavingMobEffect,
+    &WeavingMobEffect::$onActorDied,
     void,
     Actor& actor,
     int   amplifier
 ) {
-    if (enabled.load(std::memory_order_relaxed) && shouldSuppressOnDeath(*this)) {
+    if (enabled.load(std::memory_order_relaxed) && config.mobEffectBlocker.weaving) {
         return;
     }
     origin(actor, amplifier);
 }
 
 LL_TYPE_INSTANCE_HOOK(
-    EffectOnActorHurtHook,
+    OozingOnActorDiedHook,
     ll::memory::HookPriority::Normal,
-    MobEffect,
-    &MobEffect::$onActorHurt,
+    OozingMobEffect,
+    &OozingMobEffect::$onActorDied,
+    void,
+    Actor& actor,
+    int    amplifier
+) {
+    if (enabled.load(std::memory_order_relaxed) && config.mobEffectBlocker.oozing) {
+        return;
+    }
+    origin(actor, amplifier);
+}
+
+LL_TYPE_INSTANCE_HOOK(
+    WindChargedOnActorDiedHook,
+    ll::memory::HookPriority::Normal,
+    WindChargedMobEffect,
+    &WindChargedMobEffect::$onActorDied,
+    void,
+    Actor& actor,
+    int    amplifier
+) {
+    if (enabled.load(std::memory_order_relaxed) && config.mobEffectBlocker.windCharged) {
+        return;
+    }
+    origin(actor, amplifier);
+}
+
+LL_TYPE_INSTANCE_HOOK(
+    InfestedOnActorHurtHook,
+    ll::memory::HookPriority::Normal,
+    InfestedMobEffect,
+    &InfestedMobEffect::$onActorHurt,
     void,
     Actor&                   actor,
     int                      amplifier,
     ActorDamageSource const& source,
     float                    damage
 ) {
-    if (enabled.load(std::memory_order_relaxed) && shouldSuppressOnHurt(*this)) {
+    if (enabled.load(std::memory_order_relaxed) && config.mobEffectBlocker.infested) {
         return;
     }
     origin(actor, amplifier, source, damage);
@@ -71,11 +90,22 @@ bool enable() {
     if (!config.mobEffectBlocker.enable || enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (EffectOnActorDiedHook::hook() != 0) {
+    if (WeavingOnActorDiedHook::hook() != 0) {
         return false;
     }
-    if (EffectOnActorHurtHook::hook() != 0) {
-        EffectOnActorDiedHook::unhook();
+    if (OozingOnActorDiedHook::hook() != 0) {
+        WeavingOnActorDiedHook::unhook();
+        return false;
+    }
+    if (WindChargedOnActorDiedHook::hook() != 0) {
+        OozingOnActorDiedHook::unhook();
+        WeavingOnActorDiedHook::unhook();
+        return false;
+    }
+    if (InfestedOnActorHurtHook::hook() != 0) {
+        WindChargedOnActorDiedHook::unhook();
+        OozingOnActorDiedHook::unhook();
+        WeavingOnActorDiedHook::unhook();
         return false;
     }
     enabled.store(true, std::memory_order_relaxed);
@@ -86,8 +116,10 @@ void disable() {
     if (!enabled.exchange(false, std::memory_order_relaxed)) {
         return;
     }
-    EffectOnActorHurtHook::unhook();
-    EffectOnActorDiedHook::unhook();
+    InfestedOnActorHurtHook::unhook();
+    WindChargedOnActorDiedHook::unhook();
+    OozingOnActorDiedHook::unhook();
+    WeavingOnActorDiedHook::unhook();
 }
 
 } // namespace my_mod::mob_effect_blocker

@@ -5,7 +5,7 @@ add_repositories("levimc-repo https://github.com/LiteLDev/xmake-repo.git")
 add_repositories("yyz-repo https://github.com/yangyangzhong82/xmake-repo.git")
 
 if is_config("target_type", "server") then
-    add_requires("levilamina 26.40.6", {configs = {target_type = "server"}})
+    add_requires("levilamina 26.51.1", {configs = {target_type = "server"}})
 else
     add_requires("levilamina 26.40.4", {configs = {target_type = "client"}})
 end

@@ -55,12 +55,11 @@ LL_TYPE_INSTANCE_HOOK(
         return;
     }
     GameMode& gameMode = *player->mGameMode;
-    gameMode.baseUseItem(const_cast<ItemStack&>(player->getSelectedItem()));
+    gameMode.baseUseItem(player->getSelectedItem(), HandSlot::Mainhand);
 
-
-    auto& recast = const_cast<ItemStack&>(player->getSelectedItem());
+    auto const& recast = player->getSelectedItem();
     if (!recast.isNull()) {
-        gameMode.baseUseItem(recast);
+        gameMode.baseUseItem(recast, HandSlot::Mainhand);
     }
 }
 #pragma clang diagnostic pop

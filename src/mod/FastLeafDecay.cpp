@@ -98,7 +98,7 @@ void forceDecayCheck(BlockSource& region, BlockPos const& pos) {
     // 而 randomTick 是非虚成员函数，所以这里的下行转换是安全的。
     auto const& leaves = static_cast<LeavesBlock const&>(block.getBlockType());
 
-    BlockEvents::BlockRandomTickEvent event{pos, region, Random::mThreadLocalRandom()};
+    BlockEvents::BlockRandomTickEvent event{pos, region, Random::getThreadLocal()};
     leaves.randomTick(event);
 }
 

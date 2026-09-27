@@ -10,10 +10,11 @@
 #include "mc/world/actor/Actor.h"
 #include "mc/world/actor/ActorDataIDs.h"
 #include "mc/world/actor/ActorType.h"
+#include "mc/deps/vanilla_components/ActorDataDirtyFlagsComponent.h"
+#include "mc/entity/components/SynchedActorDataComponent.h"
 #include "mc/world/actor/DataItem.h"
 #include "mc/world/actor/SynchedActorData.h"
 #include "mc/world/actor/SynchedActorDataEntityWrapper.h"
-#include "mc/entity/components/SynchedActorDataComponent.h"
 #include "mc/world/level/Level.h"
 #include "mc/world/level/dimension/DimensionType.h"
 
@@ -57,7 +58,8 @@ bool setXp(Actor& orb, std::int64_t value) {
     if (!updated) {
         return false;
     }
-    entityData.markDirty(XpValueDataId);
+    actorData.mDirtyFlags->set(XpValueDataId);
+    entityData.mDirtyFlags->mDirtyFlags->set(XpValueDataId);
     return true;
 }
 
