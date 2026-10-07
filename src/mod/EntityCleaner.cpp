@@ -74,6 +74,8 @@ std::time_t    cronNextRun{};
 
 std::vector<int> warningMarks; // 降序、去重、全为正数
 int              warningLeadSeconds = 0;
+std::string      warningMessage;
+std::string      resultMessage;
 
 std::uint64_t tickCounter = 0;
 std::time_t   lastCheckedSecond{};
@@ -260,6 +262,18 @@ void broadcast(Level& level, std::string const& message) {
     });
 }
 
+std::string validateMessage(std::string const& message, char const* argumentName, char const* configKey) {
+    if (!message.empty()) {
+        try {
+            (void)fmt::format(fmt::runtime(message), 0, fmt::arg(argumentName, 0));
+        } catch (fmt::format_error const& exception) {
+            logger.warn(tr("entity_cleaner.invalid_message", configKey, exception.what()));
+            return {};
+        }
+    }
+    return message;
+}
+
 void executeCleanup(Level& level, CleanupKind kind) {
     auto const& cleanerConfig = config.entityCleaner;
     auto        candidates    = collectCandidates(level);
@@ -299,9 +313,14 @@ void executeCleanup(Level& level, CleanupKind kind) {
         logger.info(tr("entity_cleaner.dry_run_result", removed, candidates.size()));
     } else {
         logger.info(tr("entity_cleaner.result", removed, candidates.size()));
-        if (removed > 0) {
+        if (removed > 0 && cleanerConfig.warning.broadcastResult) {
             // 玩家只看一行汇总，按类型分组的明细留在日志里。
-            broadcast(level, tr("entity_cleaner.broadcast_done", removed));
+            broadcast(
+                level,
+                resultMessage.empty()
+                    ? tr("entity_cleaner.broadcast_done", removed)
+                    : fmt::format(fmt::runtime(resultMessage), removed, fmt::arg("count", removed))
+            );
         }
     }
 
@@ -348,7 +367,7 @@ void updatePending(Level& level) {
         return;
     }
 
-    auto const remaining = std::chrono::duration_cast<std::chrono::seconds>(pendingDeadline - now).count();
+    auto const remaining = std::chrono::ceil<std::chrono::seconds>(pendingDeadline - now).count();
 
     // 卡顿时可能一次跨过好几个刻度。只播报最近的那一个，避免刷出「10 秒」「5 秒」
     // 一串已经过时的数字。
@@ -359,7 +378,13 @@ void updatePending(Level& level) {
         ++nextWarningIndex;
     }
     if (announce < warningMarks.size()) {
-        broadcast(level, tr("entity_cleaner.warning", warningMarks[announce]));
+        int const seconds = static_cast<int>(remaining);
+        broadcast(
+            level,
+            warningMessage.empty()
+                ? tr("entity_cleaner.warning", seconds)
+                : fmt::format(fmt::runtime(warningMessage), seconds, fmt::arg("seconds", seconds))
+        );
     }
 }
 
@@ -409,16 +434,14 @@ void tickImpl(ll::event::ServerLevelTickEvent& event) {
         checkThreshold(level);
     }
 
-    // cron 与倒计时每墙钟秒最多跑一次（照抄 ScheduledCommand.cpp 的门控）。
+    // cron 每墙钟秒最多跑一次；倒计时每 tick 检查，触发后立即播报首条预告。
     auto const nowSeconds = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    if (nowSeconds == lastCheckedSecond) {
-        return;
-    }
-    lastCheckedSecond = nowSeconds;
-
-    if (cronEnabled && nowSeconds >= cronNextRun) {
-        cronNextRun = cron::cron_next(cronExpression, nowSeconds);
-        requestCleanup(CleanupKind::Scheduled);
+    if (nowSeconds != lastCheckedSecond) {
+        lastCheckedSecond = nowSeconds;
+        if (cronEnabled && nowSeconds >= cronNextRun) {
+            cronNextRun = cron::cron_next(cronExpression, nowSeconds);
+            requestCleanup(CleanupKind::Scheduled);
+        }
     }
 
     updatePending(level);
@@ -455,6 +478,8 @@ void resetState() {
     filterFamilies.clear();
     warningMarks.clear();
     warningLeadSeconds   = 0;
+    warningMessage.clear();
+    resultMessage.clear();
     thresholdMax         = 0;
     thresholdTarget      = 0;
     thresholdCheckTicks  = 1;
@@ -634,6 +659,8 @@ bool enable() {
     }
     // 关闭预告或刻度为空 => 提前量为 0 => 触发即执行。
     warningLeadSeconds = warningMarks.empty() ? 0 : warningMarks.front();
+    warningMessage = validateMessage(cleanerConfig.warning.message, "seconds", "entityCleaner.warning.message");
+    resultMessage = validateMessage(cleanerConfig.warning.resultMessage, "count", "entityCleaner.warning.resultMessage");
 
     active       = true;
     tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);

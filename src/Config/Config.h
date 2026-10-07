@@ -21,7 +21,7 @@ struct DroppedItemLifetimeConfig {
 };
 
 struct MobEffectBlockerConfig {
-    bool enable      = true;
+    bool enable      = false;
     bool weaving     = true;
     bool infested    = true;
     bool oozing      = true;
@@ -29,7 +29,7 @@ struct MobEffectBlockerConfig {
 };
 
 struct FastLeafDecayConfig {
-    bool enable = true;
+    bool enable = false;
     // 每片被唤醒的树叶在 [minDelayTicks, maxDelayTicks] 个游戏刻后才检查腐烂。
     // 随机化是刻意的：整棵树同刻消失既难看，也会把工作量堆在同一 tick 上。
     int minDelayTicks = 2;
@@ -37,7 +37,7 @@ struct FastLeafDecayConfig {
 };
 
 struct UnloadedEntitiesCleanerConfig {
-    bool                     enable                      = true;
+    bool                     enable                      = false;
     std::vector<std::string> entityTypeNamesToClean      = {};
     bool                     logCleanedEntityTypeCounts  = true;
     bool                     logSkippedEntityTypeCounts  = true;
@@ -121,7 +121,7 @@ struct ExplosionControlConfig {
 };
 
 struct MobBlockDestructionConfig {
-    bool enable  = true;
+    bool enable  = false;
     bool wither  = true;
     bool ravager = true;
 };
@@ -132,13 +132,13 @@ struct EntityCleanerScheduleConfig {
 };
 
 struct EntityCleanerThresholdConfig {
-    bool enable = false;
+    bool enable = true;
     // 阈值比较的是「候选实体数」而非世界里的实体总数：后者含玩家和所有受保护实体，
     // 用它做判据会让「2500 个受保护村民 + 500 只怪」的服务器永远触发、永远清不到目标。
-    int maxEntities        = 3000;
-    int targetEntities     = 2000;
+    int maxEntities        = 1000;
+    int targetEntities     = 500;
     int checkIntervalTicks = 100; // 5 秒检查一次
-    int cooldownSeconds    = 60;  // 两次阈值清理之间的最小间隔
+    int cooldownSeconds    = 300; // 两次阈值清理之间的最小间隔
     // 最近一次服务端 tick 的耗时上限，单位为毫秒；0 或负数表示关闭 MSPT 触发。
     double maxMspt = 0.0;
 };
@@ -165,8 +165,9 @@ struct EntityCleanerDroppedItemConfig {
 // 意味着「删除一切未列出的」。
 struct EntityCleanerFilterConfig {
     std::string              mode      = "whitelist";
-    std::vector<std::string> typeNames = {"minecraft:item", "minecraft:xp_orb", "minecraft:arrow"};
-    std::vector<std::string> families  = {"monster"};
+    // 生存服默认只清理经验球和箭矢；掉落物按原版时间消失，生物不自动清理。
+    std::vector<std::string> typeNames = {"minecraft:xp_orb", "minecraft:arrow"};
+    std::vector<std::string> families  = {};
 };
 
 // 按实体的运行时状态保护，与类型无关，两种 mode 下都生效。
@@ -188,11 +189,15 @@ struct EntityCleanerProtectionConfig {
 
 struct EntityCleanerWarningConfig {
     bool             enable        = true;
-    std::vector<int> secondsBefore = {10, 5, 3};
+    std::vector<int> secondsBefore = {15};
+    // 空字符串使用当前语言的默认提示；支持 {seconds} / {count} 和 Minecraft 颜色代码。
+    std::string message         = {};
+    bool        broadcastResult = true;
+    std::string resultMessage   = {};
 };
 
 struct EntityCleanerConfig {
-    bool                           enable = false;
+    bool                           enable = true;
     bool                           dryRun = false; // 只统计并记录日志，不实际删除
     EntityCleanerScheduleConfig    schedule{};
     EntityCleanerThresholdConfig   threshold{};
@@ -206,12 +211,12 @@ struct EntityCleanerConfig {
 struct Config {
     int                           version                  = 22;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
-    std::string                   language                 = "en_US";
+    std::string                   language                 = "zh_CN";
     bool                          trustedSkinEnable        = true;
-    bool                          autoFishingEnable        = true;
+    bool                          autoFishingEnable        = false;
     bool                          abilityCommandEnable     = true;
     bool                          msptCommandEnable        = true;
-    bool                          cleanUnknownBlocksEnable = true;
+    bool                          cleanUnknownBlocksEnable = false;
     bool                          hideOpPermissionEnable   = true;
     DroppedItemLifetimeConfig     droppedItemLifetime{};
     XpOrbMergeConfig              xpOrbMerge{};

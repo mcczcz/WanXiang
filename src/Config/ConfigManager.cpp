@@ -9,6 +9,7 @@
 #include <iterator>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 #include <nlohmann/json.hpp>
@@ -88,12 +89,24 @@ ConfigManager::ConfigManager() : mConfig(std::make_unique<Config>()) {}
 ConfigManager::~ConfigManager() = default;
 
 bool ConfigManager::load(const std::string& path) {
+    return load(path, true);
+}
+
+bool ConfigManager::reload() {
+    return load(mConfigPath, false);
+}
+
+bool ConfigManager::load(const std::string& path, bool createIfMissing) {
     mConfigPath = path;
 
     auto& modLogger = Entry::getInstance().getSelf().getLogger();
 
     std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
+        if (!createIfMissing) {
+            modLogger.error(tr("config.reload_read_error", path));
+            return false;
+        }
         // 文件不存在，创建默认配置
         modLogger.info(tr("config.not_found", path));
         return save();
@@ -118,7 +131,8 @@ bool ConfigManager::load(const std::string& path) {
     }
 
     // 填充内存中的配置对象。缺失或类型不符的键会回退到结构体定义里的默认值。
-    userJson.get_to(*mConfig);
+    Config nextConfig;
+    userJson.get_to(nextConfig);
 
     for (std::string const& fieldError : detail::configFieldErrors()) {
         modLogger.warn(tr("config.field_error", fieldError));
@@ -146,6 +160,8 @@ bool ConfigManager::load(const std::string& path) {
         }
     }
 
+    // Keep the object address stable: modules hold a reference to this configuration.
+    *mConfig = std::move(nextConfig);
     modLogger.setLevel(mConfig->logLevel);
 
     return true; // 不再整体重写，以保留用户文件的格式和注释

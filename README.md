@@ -7,23 +7,23 @@
 | 配置项 | 功能 | 默认值 |
 | --- | --- | --- |
 | `trustedSkinEnable` | 将玩家皮肤标记为可信任皮肤 | `true` |
-| `autoFishingEnable` | 钓鱼成功后自动收杆并重新抛竿 | `true` |
+| `autoFishingEnable` | 钓鱼成功后自动收杆并重新抛竿 | `false` |
 | `abilityCommandEnable` | 强制注册原版 `/ability` 命令 | `true` |
 | `msptCommandEnable` | 注册 `/mspt` MSPT/TPS 查询命令 | `true` |
-| `cleanUnknownBlocksEnable` | 区块加载时清理无法识别的方块 | `true` |
-| `unloadedEntitiesCleaner` | 开服时清理未加载的实体数据（仅执行一次） | `enable=true` |
+| `cleanUnknownBlocksEnable` | 区块加载时清理无法识别的方块 | `false` |
+| `unloadedEntitiesCleaner` | 开服时清理未加载的实体数据（仅执行一次） | `enable=false` |
 | `hideOpPermissionEnable` | 对非管理员隐藏客户端的 OP 权限信息 | `true` |
 | `droppedItemLifetime` | 修改默认及指定掉落物的存在时间 | `enable=false` |
 | `xpOrbMerge` | 合并范围内的经验球 | `enable=true` |
-| `mobEffectBlocker` | 禁止指定状态效果触发伤害/死亡附带行为 | `enable=true` |
-| `fastLeafDecay` | 原木或树叶被破坏后加速清理无支撑树叶 | `enable=true` |
+| `mobEffectBlocker` | 禁止指定状态效果触发伤害/死亡附带行为 | `enable=false` |
+| `fastLeafDecay` | 原木或树叶被破坏后加速清理无支撑树叶 | `enable=false` |
 | `scheduledCommands` | 按 Cron 表达式执行服务端命令 | `enable=false` |
 | `commandPermissions` | 覆盖命令注册时的权限等级 | `enable=false` |
 | `serverPong` | 修改服务器列表中的 MOTD 和人数 | `enable=false` |
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
 | `coResourcePack` | 服务器材质包与玩家自己的材质包共存 | `enable=false` |
-| `mobBlockDestruction` | 禁止凋灵和掠夺兽破坏方块 | `enable=true` |
-| `entityCleaner` | 定时或超量时清理运行中的实体，清理前全服预告 | `enable=false` |
+| `mobBlockDestruction` | 禁止凋灵和掠夺兽破坏方块 | `enable=false` |
+| `entityCleaner` | 超量时清理远离玩家的经验球和箭矢，清理前全服预告 | `enable=true` |
 
 ## 安装
 
@@ -40,7 +40,7 @@
    ```
 
 3. 启动一次服务器。模组会自动创建 `plugins/WanXiang/config/config.json`。
-4. 修改配置后重启服务器。当前版本没有运行时重载命令，重启才能让 Hook 和事件监听按新配置重新注册。
+4. 修改配置后执行 `/wanxiang reload` 重载运行时功能；命令注册、命令权限和未加载实体清理的修改仍需重启服务器。
 
 如果使用源码构建，构建产物会在 `bin/` 目录生成，通常直接使用 `bin/WanXiang.zip` 安装即可。
 
@@ -48,7 +48,9 @@
 
 ### 完整示例
 
-下面是一份包含所有字段的示例。项目根目录的 [`config.example.json`](config.example.json) 提供了带中文注释、可直接复制的完整版本。可以只保留需要修改的字段，缺失字段会使用代码中的默认值；缺失的顶层字段会在启动时自动补回原文件。
+下面是适合原版生存服的默认配置：保留原版钓鱼、状态效果、树叶腐烂和生物破坏方块规则，关闭开服数据库清理和未知方块清理，开启经验球合并与保守的超量清理。默认语言为中文。项目根目录的 [`config.example.json`](config.example.json) 提供了带中文注释、可直接使用的完整版本。可以只保留需要修改的字段，缺失字段会使用代码中的默认值并在启动时自动补回原文件。
+
+默认值只影响新生成的配置和旧配置中缺失的字段，不会覆盖已有配置中的设置；已有服务器可参考完整示例调整后重载配置。
 
 ```json
 {
@@ -57,10 +59,10 @@
     "language": "zh_CN",
 
     "trustedSkinEnable": true,
-    "autoFishingEnable": true,
+    "autoFishingEnable": false,
     "abilityCommandEnable": true,
     "msptCommandEnable": true,
-    "cleanUnknownBlocksEnable": true,
+    "cleanUnknownBlocksEnable": false,
     "hideOpPermissionEnable": true,
 
     "droppedItemLifetime": {
@@ -75,19 +77,19 @@
         "intervalTicks": 20
     },
     "mobEffectBlocker": {
-        "enable": true,
+        "enable": false,
         "weaving": true,
         "infested": true,
         "oozing": true,
         "windCharged": false
     },
     "fastLeafDecay": {
-        "enable": true,
+        "enable": false,
         "minDelayTicks": 2,
         "maxDelayTicks": 8
     },
     "unloadedEntitiesCleaner": {
-        "enable": true,
+        "enable": false,
         "entityTypeNamesToClean": [],
         "logCleanedEntityTypeCounts": true,
         "logSkippedEntityTypeCounts": true,
@@ -122,37 +124,45 @@
         "allowClientPacks": true
     },
     "mobBlockDestruction": {
-        "enable": true,
+        "enable": false,
         "wither": true,
         "ravager": true
     },
-    "entityCleaner": {
+    "explosionControl": {
         "enable": false,
+        "rules": []
+    },
+    "entityCleaner": {
+        "enable": true,
         "dryRun": false,
         "schedule": {
             "enable": false,
             "cron": "0 */10 * * * *"
         },
         "threshold": {
-            "enable": false,
-            "maxEntities": 3000,
-            "targetEntities": 2000,
+            "enable": true,
+            "maxEntities": 1000,
+            "targetEntities": 500,
             "checkIntervalTicks": 100,
-            "cooldownSeconds": 60,
+            "cooldownSeconds": 300,
             "maxMspt": 0.0
         },
         "droppedItem": {
             "protectAboveAge": 5900,
             "whitelist": [
-                "minecraft:diamond",
-                "minecraft:netherite_ingot",
-                "minecraft:nether_star"
+                "minecraft:netherite_helmet", "minecraft:netherite_sword", "minecraft:netherite_chestplate",
+                "minecraft:diamond_helmet", "minecraft:netherite_leggings", "minecraft:undyed_shulker_box",
+                "minecraft:netherite_boots", "minecraft:shulker_box", "minecraft:elytra",
+                "minecraft:dragon_egg", "minecraft:nether_star", "minecraft:diamond_sword",
+                "minecraft:diamond_chestplate", "minecraft:diamond_boots", "minecraft:diamond_leggings",
+                "minecraft:diamond_hoe", "minecraft:netherite_hoe", "minecraft:diamond_axe",
+                "minecraft:netherite_axe", "minecraft:netherite_pickaxe", "minecraft:diamond_pickaxe"
             ]
         },
         "filter": {
             "mode": "whitelist",
-            "typeNames": ["minecraft:item", "minecraft:xp_orb", "minecraft:arrow"],
-            "families": ["monster"]
+            "typeNames": ["minecraft:xp_orb", "minecraft:arrow"],
+            "families": []
         },
         "protection": {
             "named": true,
@@ -171,7 +181,10 @@
         },
         "warning": {
             "enable": true,
-            "secondsBefore": [10, 5, 3]
+            "secondsBefore": [15],
+            "message": "",
+            "broadcastResult": true,
+            "resultMessage": ""
         },
         "logResult": true
     }
@@ -180,7 +193,7 @@
 
 ### 生物方块破坏：`mobBlockDestruction`
 
-默认阻止凋灵和掠夺兽通过其原版行为破坏方块。总开关或单个实体开关设为 `false` 后，重启服务器即可恢复对应行为。
+默认关闭，保留凋灵和掠夺兽破坏方块的原版行为。启用下面的配置后会阻止这两类生物破坏方块；总开关或单个实体开关设为 `false` 后，重载配置即可恢复对应行为。
 
 ```json
 "mobBlockDestruction": {
@@ -214,12 +227,22 @@
 - **Ability 命令（`abilityCommandEnable`）**：在服务端注册原版 `/ability` 命令，即使当前不是教育版模式也会尝试注册。启用后可按原版语法使用，例如 `/ability Steve mayfly true`。
 - **MSPT/TPS 命令（`msptCommandEnable`）**：注册 `/mspt` 查询命令。关闭后不会注册该命令。
 - **未知方块清理（`cleanUnknownBlocksEnable`）**：区块加载时，将被游戏标记为“无法识别状态”的方块替换为空气，并在日志中记录清理数量。该操作不可恢复，建议先备份世界。
-- **未加载实体清理（`unloadedEntitiesCleaner`）**：服务端启动完成后扫描世界数据库中的实体记录并清理，默认删除全部未加载实体，每次进程启动只执行一次。将 `entityTypeNamesToClean` 设置为非空数组可限制清理的实体类型（例如 `minecraft:item`）；该操作不可恢复，建议先备份世界。
+- **未加载实体清理（`unloadedEntitiesCleaner`）**：默认关闭。启用后在服务端启动完成时扫描世界数据库中的实体记录并清理，每次进程启动只执行一次。`entityTypeNamesToClean=[]` 表示删除全部未加载实体，非空数组可限制清理的实体类型（例如 `minecraft:item`）；该操作不可恢复，建议先备份世界。
 - **隐藏 OP 权限（`hideOpPermissionEnable`）**：向非 OP 客户端发送能力数据包时，将玩家权限伪装为普通成员；OP 玩家收到原始权限数据。它只隐藏客户端显示，不会真正改变服务端权限。
 
 ### MSPT/TPS 查询命令：`/mspt`
 
 玩家执行 `/mspt` 可查看最近一次服务端 tick 的耗时（MSPT）和按该耗时计算的 TPS。TPS 最高显示为 20；服务器尚未完成 tick 统计时显示为 20 TPS、0 MSPT。
+
+### 配置重载命令：`/wanxiang reload`
+
+OP 玩家执行 `/wanxiang reload`，或在服务端控制台执行 `wanxiang reload`，可重新读取 `config/config.json` 并应用运行时功能开关和参数，同时更新日志等级和当前语言。无需额外配置开关。
+
+配置文件无法读取或 JSON 解析失败时，当前配置和功能保持不变；功能重新启用失败时，会尝试恢复旧配置并在日志中记录原因。字段类型错误仍沿用配置加载规则，回退到该字段的默认值。
+
+重载会取消尚未执行的树叶腐烂回调、实体清理倒计时，并重新计算定时任务的下一次执行时间。未加载实体数据库清理不会因重载再次执行。客户端存档名称和资源包选项在后续发送对应数据包时生效，已在线玩家通常需要重新加入。
+
+`abilityCommandEnable`、`msptCommandEnable`、`commandPermissions` 和 `unloadedEntitiesCleaner` 的修改仍需重启服务器；重载不会重新注册已有命令或修改其权限要求。语言文件内容的修改也需重启，重载只切换 `language` 指定的已加载语言。
 
 ### 掉落物存在时间：`droppedItemLifetime`
 
@@ -264,7 +287,7 @@
 
 | 字段 | 默认值 | 被阻止的效果 |
 | --- | --- | --- |
-| `enable` | `true` | 总开关 |
+| `enable` | `false` | 总开关；默认保留原版效果行为 |
 | `weaving` | `true` | Weaving（编织） |
 | `infested` | `true` | Infested（寄生）受伤触发 |
 | `oozing` | `true` | Oozing（渗浆） |
@@ -402,7 +425,9 @@
 
 ### 实体清理：`entityCleaner`
 
-在服务器运行期间控制实体总量。与只在开服时扫描存档的 `unloadedEntitiesCleaner` 不同，本功能清理的是**已加载在世界里**的实体。默认 `enable=false`。
+在服务器运行期间控制实体总量。与只在开服时扫描存档的 `unloadedEntitiesCleaner` 不同，本功能清理的是**已加载在世界里**的实体。默认 `enable=true`、`dryRun=false`，仅开启阈值触发：远离玩家至少 32 格且通过保护规则的经验球和箭矢超过 1000 个时，提前 15 秒预告后清理到最多 500 个，两次阈值清理至少间隔 300 秒。默认关闭定时清理和 MSPT 触发。
+
+默认名单不含掉落物或生物 family，死亡掉落物按原版时间消失，村民、动物及刷怪农场中的生物不会被自动清理。需要清理掉落物或怪物时，可自行向 `filter.typeNames` 添加 `minecraft:item` 或向 `filter.families` 添加 `monster`。
 
 #### 触发方式
 
@@ -458,6 +483,22 @@
 #### 清理预告
 
 `warning.secondsBefore` 里的每个秒数都会在清理前向全服广播一次倒计时。列表会自动去重、降序排序并丢弃非正数；设为 `[]` 或 `warning.enable=false` 表示触发即清理，不预告。服务器无人在线时照常清理，只是跳过广播。
+
+默认提前 15 秒预告一次；例如 `[15, 5, 3]` 表示提前 15、5、3 秒各提醒一次。`warning.message` 可自定义预告文案，`{seconds}` 替换为剩余秒数；`warning.resultMessage` 可自定义完成文案，`{count}` 替换为实际清理数量。两者均支持 Minecraft 的 `§` 颜色代码，也兼容单个 `{}` 占位符；空字符串使用当前语言文件的默认提示。格式错误会记录警告并回退到默认提示。
+
+`warning.broadcastResult` 独立控制完成广播，不受 `warning.enable` 影响；没有删除实体或 `dryRun=true` 时不广播完成消息。这些配置用于定时/阈值自动清理；OP 手动清理仍即时执行并向操作者反馈结果。修改配置后执行 `/wanxiang reload` 生效，旧配置的缺失字段会在加载时自动补齐，原有倒计时秒数会保留。
+
+例如，下面的配置会显示 15 秒预告和清理数量提示：
+
+```json
+"warning": {
+    "enable": true,
+    "secondsBefore": [15],
+    "message": "§e[清理] §f{seconds} 秒后将清理多余实体。",
+    "broadcastResult": true,
+    "resultMessage": "§e[清理] §f已清理 {count} 个实体。"
+}
+```
 
 #### 上线前请先演练
 
@@ -519,7 +560,7 @@ xmake
 
 - **模组无法加载**：确认 `manifest.json`、`WanXiang.dll` 位于同一目录，并检查 LeviLamina 版本和平台是否为 Windows x64。
 - **配置解析失败**：检查 JSON 逗号、引号和注释，日志会给出解析错误位置。可备份后删除 `config.json`，重启生成默认文件。
-- **改配置没有生效**：所有开关在加载/启用阶段读取，修改后必须完整重启服务器。
+- **改配置没有生效**：运行时功能修改后执行 `/wanxiang reload`；命令注册、命令权限和未加载实体清理仍需完整重启服务器。
 - **定时任务不执行**：确认 `scheduledCommands.enable=true`、Cron 为 6 段格式、命令非空，并查看启动日志中的注册数量和无效表达式提示。
 - **权限规则无效**：确认命令名拼写正确、权限等级属于支持列表；规则只对命令注册过程生效，需重启后验证。
 

@@ -18,12 +18,16 @@
 #include "mod/MobBlockDestruction.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/MsptCommand.h"
+#include "mod/ReloadCommand.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
 #include "mod/TrustedSkin.h"
 #include "mod/UnloadedEntitiesCleaner.h"
 #include "mod/XpOrbMerge.h"
 #include <filesystem>
+#include <exception>
+#include <iterator>
+#include <utility>
 
 namespace my_mod {
 ll::io::Logger& logger = Entry::getInstance().getSelf().getLogger();
@@ -301,12 +305,88 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!reload_command::enable()) {
+        disable();
+        logger.error(tr("reload_command.enable_failed"));
+        return false;
+    }
+
     logger.info(tr("plugin.enabled"));
     return true;
 }
 
+bool Entry::reload() {
+    struct Feature {
+        bool (*enable)();
+        void (*disable)();
+        const char* name;
+    };
+    // Command registration and startup database cleanup require a server restart.
+    static constexpr Feature features[] = {
+        {trusted_skin::enable, trusted_skin::disable, "trustedSkin"},
+        {auto_fishing::enable, auto_fishing::disable, "autoFishing"},
+        {xp_orb_merge::enable, xp_orb_merge::disable, "xpOrbMerge"},
+        {mob_effect_blocker::enable, mob_effect_blocker::disable, "mobEffectBlocker"},
+        {fast_leaf_decay::enable, fast_leaf_decay::disable, "fastLeafDecay"},
+        {clean_unknown_blocks::enable, clean_unknown_blocks::disable, "cleanUnknownBlocks"},
+        {hide_op_permission::enable, hide_op_permission::disable, "hideOpPermission"},
+        {scheduled_command::enable, scheduled_command::disable, "scheduledCommands"},
+        {server_pong::enable, server_pong::disable, "serverPong"},
+        {explosion_control::enable, explosion_control::disable, "explosionControl"},
+        {client_level_name::enable, client_level_name::disable, "clientLevelName"},
+        {dropped_item_lifetime::enable, dropped_item_lifetime::disable, "droppedItemLifetime"},
+        {entity_cleaner::enable, entity_cleaner::disable, "entityCleaner"},
+        {co_resource_pack::enable, co_resource_pack::disable, "coResourcePack"},
+        {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
+    };
+
+    auto stopFeatures = [&] {
+        for (auto it = std::rbegin(features); it != std::rend(features); ++it) {
+            it->disable();
+        }
+    };
+    auto startFeatures = [&] {
+        for (auto const& feature : features) {
+            try {
+                if (feature.enable()) {
+                    continue;
+                }
+                logger.error(tr("reload_command.feature_failed", feature.name));
+            } catch (std::exception const& exception) {
+                logger.error(tr("reload_command.feature_exception", feature.name, exception.what()));
+            }
+            return false;
+        }
+        return true;
+    };
+
+    Config previousConfig = config;
+    auto const previousLanguage = I18n::getInstance().getLanguage();
+    if (!ConfigManager::getInstance().reload()) {
+        return false;
+    }
+
+    stopFeatures();
+    I18n::getInstance().setLanguage(config.language);
+    if (startFeatures()) {
+        logger.info(tr("reload_command.success"));
+        return true;
+    }
+
+    stopFeatures();
+    config = std::move(previousConfig);
+    logger.setLevel(config.logLevel);
+    I18n::getInstance().setLanguage(previousLanguage);
+    if (!startFeatures()) {
+        stopFeatures();
+        logger.error(tr("reload_command.restore_failed"));
+    }
+    return false;
+}
+
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    reload_command::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
     entity_cleaner::disable();
@@ -333,6 +413,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    reload_command::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
     entity_cleaner::disable();

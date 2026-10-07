@@ -17,6 +17,8 @@ public:
 
     bool enable();
 
+    bool reload();
+
     bool disable();
 
     bool unload();

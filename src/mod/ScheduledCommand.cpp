@@ -22,6 +22,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <cstdint>
 #include <exception>
 #include <memory>
 #include <string>
@@ -41,6 +42,7 @@ struct ScheduledTask {
 ll::event::ListenerPtr     tickListener;
 std::vector<ScheduledTask> scheduledTasks;
 std::time_t                lastCheckedSecond{};
+std::uint64_t              taskGeneration{};
 
 void execute(ScheduledTask const& task, ServerLevel& level) {
     auto minecraft = ll::service::getMinecraft();
@@ -74,7 +76,12 @@ void onServerTick(ll::event::ServerLevelTickEvent& event) {
             continue;
         }
 
+        auto const generation = taskGeneration;
         execute(task, level);
+        // A scheduled reload can replace this vector while execute() is running.
+        if (generation != taskGeneration) {
+            return;
+        }
         task.nextRun = cron::cron_next(task.expression, now);
     }
 }
@@ -126,6 +133,7 @@ bool enable() {
 }
 
 void disable() {
+    ++taskGeneration;
     if (tickListener) {
         ll::event::EventBus::getInstance().removeListener<ll::event::ServerLevelTickEvent>(tickListener);
         tickListener.reset();

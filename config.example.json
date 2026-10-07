@@ -1,4 +1,5 @@
 {
+  // 原版生存服默认配置：保留原版玩法，开启经验球合并和保守的超量清理。
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
   "version": 22,
 
@@ -10,13 +11,13 @@
   // 将玩家皮肤标记为可信任皮肤。
   "trustedSkinEnable": true,
   // 钓鱼成功后自动收杆并重新抛竿。
-  "autoFishingEnable": true,
+  "autoFishingEnable": false,
   // 注册原版 /ability 命令。
   "abilityCommandEnable": true,
   // 注册 /mspt 命令，供玩家查看当前 MSPT 和 TPS。
   "msptCommandEnable": true,
   // 区块加载时清理无法识别的方块。操作不可恢复。
-  "cleanUnknownBlocksEnable": true,
+  "cleanUnknownBlocksEnable": false,
   // 向非管理员隐藏客户端显示的 OP 权限信息。
   "hideOpPermissionEnable": true,
 
@@ -42,7 +43,7 @@
 
   // 阻止状态效果触发的附带行为。
   "mobEffectBlocker": {
-    "enable": true,
+    "enable": false,
     "weaving": true,
     "infested": true,
     "oozing": true,
@@ -51,7 +52,7 @@
 
   // 原木或树叶被破坏后，加速清理无支撑的非持久树叶。
   "fastLeafDecay": {
-    "enable": true,
+    "enable": false,
     // 每片树叶随机延迟检查的最小/最大游戏刻。
     "minDelayTicks": 2,
     "maxDelayTicks": 8
@@ -60,7 +61,7 @@
   // 服务器启动时清理世界数据库中的未加载实体记录，仅执行一次。
   // entityTypeNamesToClean 为空表示清理全部未加载实体，操作不可恢复。
   "unloadedEntitiesCleaner": {
-    "enable": true,
+    "enable": false,
     "entityTypeNamesToClean": [],
     "logCleanedEntityTypeCounts": true,
     "logSkippedEntityTypeCounts": true,
@@ -71,33 +72,22 @@
   // 按 Cron 表达式执行服务端命令。Cron 为 6 段：秒 分 时 月内日期 月 星期。
   "scheduledCommands": {
     "enable": false,
-    "tasks": [
-      {
-        "cron": "0 */5 * * * *",
-        // 不要带开头的 /；命令以服务端 Owner 权限执行。
-        "command": "list",
-        "outputToConsole": true
-      }
-    ]
+    // 任务中的 command 不要带开头的 /；命令以服务端 Owner 权限执行。
+    "tasks": []
   },
 
   // 覆盖命令注册时的权限等级。修改后需要重启服务器。
   "commandPermissions": {
     "enable": false,
-    "rules": [
-      {
-        "command": "gamemode",
-        // 可选：Any、GameDirectors、Admin、Host、Owner、Internal。
-        "permissionLevel": "Any"
-      }
-    ]
+    // 规则的 permissionLevel 可选：Any、GameDirectors、Admin、Host、Owner、Internal。
+    "rules": []
   },
 
   // 修改客户端服务器列表中显示的 MOTD 和人数。
   "serverPong": {
     "enable": false,
     "motdEnable": false,
-    "motd": "§a生存服务器 | WanXiang",
+    "motd": "",
     "playerCountEnable": false,
     "playerCount": 0,
     "maxPlayerCountEnable": false,
@@ -107,7 +97,7 @@
   // 修改客户端进入世界时显示的存档名称，不会修改世界实际名称。
   "clientLevelName": {
     "enable": false,
-    "name": "我的服务器"
+    "name": ""
   },
 
   // 资源包共存：服务器材质包和玩家自己启用的材质包同时生效。
@@ -123,23 +113,23 @@
     "allowClientPacks": true
   },
 
-  // 控制运行期间的实体清理。清理操作不可恢复，建议先使用 dryRun=true 演练。
+  // 生存服默认仅在经验球/箭矢超量时清理；保留掉落物、怪物和玩家附近实体。
   "entityCleaner": {
     "enable": true,
     // true 只统计并记录日志，不实际删除实体。
-    "dryRun": true,
+    "dryRun": false,
     "schedule": {
-      "enable": true,
-      "cron": "0 */5 * * * *"
+      "enable": false,
+      "cron": "0 */10 * * * *"
     },
     "threshold": {
       "enable": true,
       // 候选实体数超过此值时触发阈值清理。
-      "maxEntities": 700,
+      "maxEntities": 1000,
       // 阈值清理后最多保留的候选实体数。
-      "targetEntities": 200,
+      "targetEntities": 500,
       "checkIntervalTicks": 100,
-      "cooldownSeconds": 40,
+      "cooldownSeconds": 300,
       // 最近一次服务端 tick 耗时超过此值（单位：毫秒）时触发阈值清理；0 表示关闭。
       "maxMspt": 0.0
     },
@@ -148,16 +138,21 @@
       "protectAboveAge": 5900,
       // 贵重物品白名单；匹配完整物品标识的掉落物始终保留。
       "whitelist": [
-        "minecraft:diamond",
-        "minecraft:netherite_ingot",
-        "minecraft:nether_star"
+        "minecraft:netherite_helmet", "minecraft:netherite_sword", "minecraft:netherite_chestplate",
+        "minecraft:diamond_helmet", "minecraft:netherite_leggings", "minecraft:undyed_shulker_box",
+        "minecraft:netherite_boots", "minecraft:shulker_box", "minecraft:elytra",
+        "minecraft:dragon_egg", "minecraft:nether_star", "minecraft:diamond_sword",
+        "minecraft:diamond_chestplate", "minecraft:diamond_boots", "minecraft:diamond_leggings",
+        "minecraft:diamond_hoe", "minecraft:netherite_hoe", "minecraft:diamond_axe",
+        "minecraft:netherite_axe", "minecraft:netherite_pickaxe", "minecraft:diamond_pickaxe"
       ]
     },
     "filter": {
       // whitelist=只清理名单内类型/family；blacklist=名单内受保护，其余清理。
       "mode": "whitelist",
-      "typeNames": ["minecraft:item", "minecraft:xp_orb", "minecraft:arrow"],
-      "families": ["monster"]
+      // 不包含 minecraft:item 或 monster，保留死亡掉落物和生存农场中的生物。
+      "typeNames": ["minecraft:xp_orb", "minecraft:arrow"],
+      "families": []
     },
     "protection": {
       // 下面的布尔值为 true 时启用对应保护，设为 false 后实体仍需通过名单和其他保护检查才可能被清理。
@@ -187,12 +182,18 @@
       // 不祥之瓶生成器保护：跳过试炼密室的不祥之瓶战利品生成器。
       "ominousItemSpawners": true,
       // 玩家距离保护：同一维度内距最近玩家小于此格数的实体跳过；0 或负数表示关闭。
-      "playerRadius": 0
+      "playerRadius": 32.0
     },
     "warning": {
       "enable": true,
       // 清理前广播的倒计时秒数；空数组表示触发即清理。
-      "secondsBefore": [10, 5, 3]
+      "secondsBefore": [15],
+      // 空字符串使用当前语言的默认提示；{seconds} 为剩余秒数，支持 § 颜色代码。
+      "message": "",
+      // 是否向全服广播实际清理结果；不受上面的预告 enable 开关影响。
+      "broadcastResult": true,
+      // {count} 为实际清理数量；空字符串使用当前语言的默认提示。
+      "resultMessage": ""
     },
     // 是否在日志中输出按实体类型分组的删除统计。
     "logResult": true
@@ -201,29 +202,13 @@
   // 爆炸控制。规则按顺序应用；可选覆盖字段为 null 时保持原版值。
   "explosionControl": {
     "enable": false,
-    "rules": [
-      {
-        // * 匹配所有来源；<none> 匹配没有实体来源的爆炸。
-        "sourceType": "minecraft:tnt",
-        "cancel": false,
-        "radius": null,
-        "fire": null,
-        "breaking": null,
-        "allowUnderwater": null,
-        "canToggleBlocks": null,
-        "damageScaling": null,
-        "ignoreBlockResistance": null,
-        "maxResistance": null,
-        "inWater": null,
-        "totalDamage": null,
-        "knockbackScaling": null
-      }
-    ]
+    // 规则的 sourceType 使用 * 匹配所有来源、<none> 匹配没有实体来源的爆炸。
+    "rules": []
   },
 
   // 生物方块破坏控制。用于禁止凋灵和掠夺兽破坏方块。
   "mobBlockDestruction": {
-    "enable": true,
+    "enable": false,
     "wither": true,
     "ravager": true
   }
