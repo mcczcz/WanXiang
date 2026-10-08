@@ -18,6 +18,7 @@
 #include "mod/MobBlockDestruction.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/MsptCommand.h"
+#include "mod/PerformanceMonitor.h"
 #include "mod/ReloadCommand.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
@@ -305,6 +306,8 @@ bool Entry::enable() {
         return false;
     }
 
+    performance_monitor::enable();
+
     if (!reload_command::enable()) {
         disable();
         logger.error(tr("reload_command.enable_failed"));
@@ -338,6 +341,7 @@ bool Entry::reload() {
         {entity_cleaner::enable, entity_cleaner::disable, "entityCleaner"},
         {co_resource_pack::enable, co_resource_pack::disable, "coResourcePack"},
         {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
+        {performance_monitor::enable, performance_monitor::disable, "performanceMonitor"},
     };
 
     auto stopFeatures = [&] {
@@ -386,6 +390,7 @@ bool Entry::reload() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    performance_monitor::disable();
     reload_command::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
@@ -413,6 +418,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    performance_monitor::disable();
     reload_command::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
