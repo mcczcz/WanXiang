@@ -12,6 +12,7 @@
 #include "mc/deps/ecs/systems/ITickingSystem.h"
 #include "mc/deps/ecs/systems/SystemInfo.h"
 #include "mc/deps/ecs/systems/TickingSystemId.h"
+#include "mc/deps/ecs/systems/TickingSystemIterator.h"
 #include "mc/deps/vanilla_components/IConstBlockSource.h"
 #include "mc/deps/vanilla_components/MoveRequestComponent.h"
 #include "mc/deps/vanilla_components/block_source_visitor/CollisionShape.h"
@@ -27,6 +28,7 @@
 #include "mc/entity/systems/NavigationSystem.h"
 #include "mc/entity/systems/ProjectileSystem.h"
 #include "mc/entity/systems/move_collision_system/MoveCollisionSystem.h"
+#include "mc/platform/brstd/function_ref.h"
 #include "mc/profile/ProfilerLite.h"
 #include "mc/server/commands/CommandOrigin.h"
 #include "mc/server/commands/CommandOutput.h"
@@ -55,6 +57,7 @@
 #include <charconv>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <functional>
@@ -606,30 +609,49 @@ LL_TYPE_INSTANCE_HOOK(
     origin(registry);
 }
 
-using SystemCallback = std::function<void(ITickingSystem&, TickingSystemId)>;
+using SystemCallback = brstd::function_ref<void(ITickingSystem&, TickingSystemId const&)>;
+
+// 26.60 passes one iterator instead of (filter, std::function, captureTimings).
+// The SDK leaves its fields untyped. BDS 1.26.62.1 ECS dispatch
+// (0x14304B5C0) builds this layout; 0x143057C90 receives the system ID by reference.
+// Keep the filter and optional single-tick callback opaque and unchanged.
+struct TickingSystemIteratorAbi {
+    std::array<std::byte, 8>  filter;
+    SystemCallback            callback;
+    std::array<std::byte, 24> singleTickCallback;
+    bool                      captureTimings;
+};
+static_assert(sizeof(SystemCallback) == 16);
+static_assert(sizeof(TickingSystemIteratorAbi) == sizeof(TickingSystemIterator));
+static_assert(alignof(TickingSystemIteratorAbi) == alignof(TickingSystemIterator));
+static_assert(offsetof(TickingSystemIteratorAbi, filter) == offsetof(TickingSystemIterator, mUnk3cc911));
+static_assert(offsetof(TickingSystemIteratorAbi, callback) == offsetof(TickingSystemIterator, mUnke5e641));
+static_assert(offsetof(TickingSystemIteratorAbi, singleTickCallback) == offsetof(TickingSystemIterator, mUnk29e8d6));
+static_assert(offsetof(TickingSystemIteratorAbi, captureTimings) == offsetof(TickingSystemIterator, mUnkf6c4f3));
+
 LL_TYPE_INSTANCE_HOOK(
     EcsForeachHook,
     ll::memory::HookPriority::Normal,
     IEntitySystemsCollection,
     ecsTickAddress,
     void,
-    EntitySystemsFilter const& filter,
-    SystemCallback const&      callback,
-    bool                       captureTimings
+    TickingSystemIteratorAbi const& iterator
 ) {
     if (!profiling()) {
-        origin(filter, callback, captureTimings);
+        origin(iterator);
         return;
     }
-    SystemCallback measured = [&](ITickingSystem& system, TickingSystemId id) {
+    auto callback = [&](ITickingSystem& system, TickingSystemId const& id) {
         if (!profiling()) {
-            callback(system, id);
+            iterator.callback(system, id);
             return;
         }
         Scope scope(Phase::EcsSystem, nullptr, trackSystem(*this, id));
-        callback(system, id);
+        iterator.callback(system, id);
     };
-    origin(filter, measured, captureTimings);
+    auto measured     = iterator;
+    measured.callback = SystemCallback{callback};
+    origin(measured);
 }
 LL_TYPE_INSTANCE_HOOK(
     EcsSingleForeachHook,
@@ -637,23 +659,23 @@ LL_TYPE_INSTANCE_HOOK(
     IEntitySystemsCollection,
     ecsSingleTickAddress,
     void,
-    EntitySystemsFilter const& filter,
-    SystemCallback const&      callback,
-    bool                       captureTimings
+    TickingSystemIteratorAbi const& iterator
 ) {
     if (!profiling()) {
-        origin(filter, callback, captureTimings);
+        origin(iterator);
         return;
     }
-    SystemCallback measured = [&](ITickingSystem& system, TickingSystemId id) {
+    auto callback = [&](ITickingSystem& system, TickingSystemId const& id) {
         if (!profiling()) {
-            callback(system, id);
+            iterator.callback(system, id);
             return;
         }
         Scope scope(Phase::EcsSystem, nullptr, trackSystem(*this, id));
-        callback(system, id);
+        iterator.callback(system, id);
     };
-    origin(filter, measured, captureTimings);
+    auto measured     = iterator;
+    measured.callback = SystemCallback{callback};
+    origin(measured);
 }
 LL_TYPE_INSTANCE_HOOK(ActorTickHook, ll::memory::HookPriority::Normal, Actor, &Actor::tick, bool, BlockSource& region) {
     Scope scope(Phase::ActorTick, profiling() ? this : nullptr);
