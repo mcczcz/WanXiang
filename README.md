@@ -10,7 +10,6 @@
 | `autoFishingEnable` | 钓鱼成功后自动收杆并重新抛竿 | `false` |
 | `abilityCommandEnable` | 强制注册原版 `/ability` 命令 | `true` |
 | `msptCommandEnable` | 注册 `/mspt` MSPT/TPS 查询命令 | `true` |
-| `performanceMonitor` | `/wxperf` 实体/AI 耗时检测、慢 tick 排查及可选的白名单闲逛限频 | `enable=false` |
 | `cleanUnknownBlocksEnable` | 区块加载时清理无法识别的方块 | `false` |
 | `unloadedEntitiesCleaner` | 开服时清理未加载的实体数据（仅执行一次） | `enable=false` |
 | `hideOpPermissionEnable` | 对非管理员隐藏客户端的 OP 权限信息 | `true` |
@@ -191,63 +190,6 @@
     }
 }
 ```
-
-### 实体与 AI 性能检测：`performanceMonitor`
-
-将 `performanceMonitor.enable` 设为 `true`，执行 `/wanxiang reload` 后，管理员可以使用：
-
-```text
-/wxperf start 30
-/wxperf status
-/wxperf stop
-/wxperf report
-/wxperf systems
-/wxperf phases
-/wxperf types
-/wxperf entities
-/wxperf chunks
-/wxperf spikes
-/wxperf entity <报告中的实体ID>
-```
-
-`start` 从下一个世界 tick 开始采样，省略时长时使用 `captureSeconds`（默认 30 秒）。时长范围为 1～600 秒，最多记录 12000 个世界 tick；达到限制后自动停止并在控制台提示。`stop` 提前停止采样并保留结果，`report` 查看当前或最近一次结果，`status` 查看采样状态、最近服务器 MSPT、已安装探针数量及优化状态。已有采样运行时不会被新的 `start` 覆盖。新采样、配置重载或模块停用会清除上一份报告，报告只保存在内存。
-
-`report` 先给出世界 tick 的平均/P50/P95/P99/最大耗时、慢 tick 比例和“持续负载偏高/慢刻尖峰”判断，再列主要耗时来源。来源按自身耗时降序，直接显示 **ms/tick、世界 tick 时间占比、次数/tick**，并将未细分的 ECS 成本列出具体系统名称。默认最多显示 8 个来源、5 个 ECS 系统、3 种实体、3 个实体、3 个区块和 1 个最慢 tick，详细数据通过分项命令查看。实体行附 ID、最后采样位置和主要阶段。
-
-`systems` 列出本次采样实际观察到的全部 ECS 系统，不受 `topCount` 截断。通过引擎 ECS 集合的统一遍历入口包裹系统回调，自动读取系统 ID 和名称，覆盖该集合实现中实际经过入口的常规及单实体调度，保留原有过滤条件、顺序和回调。每行显示系统总耗时/tick、扣除已测子调用后的未细分耗时/tick、次数/tick、单次最大耗时和主要子阶段。系统总耗时包含函数阶段，不能与来源排行相加。记录上限为 2048 个系统；入口解析失败、未观察到回调或发现不同集合实现时，报告明确提示覆盖不足。
-
-**计时边界：**报告里的世界 tick 是主线程 `Level::tick` 的实测范围，不等于完整服务器 MSPT；`status` 的最近 MSPT 取自原版 ProfilerLite。累计总耗时包含子调用，不能把嵌套阶段相加；自身耗时扣除了已测子调用。计时包含观察器开销，也可能包含相同调用链上的其他插件钩子，不能据此直接判断某个插件有问题。未覆盖的工作会留在父阶段自身耗时中，零调用可能意味着该路径没有命中探针。
-
-函数探针覆盖 Actor/GoalSelector 调度、选敌、附近查询与排序、目标可达性、近战移动、导航、推挤、闲逛、移动碰撞形状、感应器、过滤条件、范围效果、投射物、掉落物，以及 PathNavigation 的 tick/更新路径/moveTo 请求和一个 AABB 查询重载。新增村民 `newServerAiStep`、`WorkGoal::canUse/tick`、`MoveToPOIGoal::canUse/getPOI/_canReachPOI` 和 `VillageManager::tickVillages`，进一步定位工作站、床等 POI 相关开销。选敌搜索区分启动检查、运行中继续检查和其他调用方。
-
-`phases` 按自身耗时排序显示已命中函数的调用均值、每 tick 均值、返回次数、慢 tick 耗时和最慢单次调用实体，零调用阶段合并为数量提示。`types` 显示全部已记录类型的每 tick 自身耗时、占比、不同实体数和主要阶段；过滤条件成本可能归给被检查的实体，而非发起检查的实体。`entities` 按 `topCount` 显示实体排行，`entity <ID>` 查看单个实体的全部已命中阶段。工作量包括候选数、返回后请求中的碰撞形状数、到期子感应器数；相互嵌套的查询计数可能重叠，不能相加。
-
-`chunks` 按调用开始时所在区块的自身耗时排序，以 ms/tick 显示；碰撞使用原始请求 AABB 最小点归属，实体跨区块后之前耗时留在原位置。`spikes` 保留超过阈值的最慢 20 个世界 tick，显示各 tick 的前三个自身耗时阶段。实体和区块表各受 `maxTrackedEntities` 限制，满表会显示截断；区块排行不等于完整区块模拟成本，实体计数也不是当前存活数量。报告建议在采样结束后查看，避免报告生成开销进入采样；实时查看时当前 tick 的部分阶段可能已记入，而其世界 tick 总计尚未完成。
-
-`Mob::aiStep` 不是全部 AI；范围效果发射器不是所有药水效果 tick；可达性检查包含缓存命中，近战移动和导航请求也不等于实际 A* 搜索次数。基类入口可能被派生实现绕过。模块没有接管 `Path` 所有权、调用不可用的 MCNAPI、使用固定二进制地址或把 AI 移到工作线程。红石、区块生成、磁盘、网络、村民 POI 全流程、独立工作线程和其他插件没有完整分类；若世界 tick 未覆盖部分或服务器 MSPT 较高，需要继续针对对应系统分析。
-
-```json
-"performanceMonitor": {
-    "enable": false,
-    "captureSeconds": 30,
-    "slowTickMs": 50.0,
-    "topCount": 10,
-    "maxTrackedEntities": 4096,
-    "optimization": {
-        "enable": false,
-        "strollIntervalTicks": 10,
-        "strollTypeNames": []
-    }
-}
-```
-
-`slowTickMs` 为慢世界 tick 阈值（默认 50 ms，范围 1～10000）；`topCount` 为实体、区块、尖峰明细的排行行数（1～20），默认总览另有精简上限，`systems` 和 `types` 显示全部记录；`maxTrackedEntities` 限制单次采样实体记录和独立优化缓存的数量（128～16384）。范围外的配置会在模块内部限制到有效范围。记录表满后不再收录新的实体，阶段总计继续累计，报告会显示未归属的调用数；因此类型和实体排行可能遗漏之后出现的热点。未采样时不做实体详细计时或排行统计。不可用的探针会单独记录并在报告中提示；世界 tick 探针不可用时仅停用本模块，不使其他功能加载失败。
-
-**可选优化：**只有同时启用模块和 `optimization.enable`，并在 `strollTypeNames` 中填写完整实体标识，才会限制这些类型的 `RandomStrollGoal::canUse` 检查。例如 `["minecraft:cow"]` 仅作用于牛的该类闲逛检查。`strollIntervalTicks` 限制同一实体两次原版检查的最小世界 tick 间隔（1～200）。使用每个实体的到期时间，避免 AI 自身调用周期与取模限频相互锁死；缓存满时放行原版检查，缓存每 1200 个世界 tick 清空一次，因此它不是严格的配额限制。
-
-有攻击目标、命名、驯服、拴绳、载有乘客或正在骑乘的实体会被放行。优化会减少闲逛发起机会、降低游走频率，可能改变依赖动物走动的农场行为，并非无损优化；默认关闭且白名单为空。它不跳过实体 tick、整个 GoalSelector、活动中的闲逛 goal、攻击、导航或碰撞，也不改动原版 goal 字段。报告中的“放行/跳过检查”只是次数，不表示实际节省了多少毫秒。`/wxperf stop` 只停止采样，关闭优化需要修改配置后重载。
-
-新模块只注册自己的命令和 hook，通过 `origin` 保留其他 hook 的调用链；配置重载、停用和卸载只释放自身状态与探针。现有清理、经验球合并、MSPT 等模块的实现及配置保持独立。
 
 ### 生物方块破坏：`mobBlockDestruction`
 

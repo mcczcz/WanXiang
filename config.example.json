@@ -225,27 +225,5 @@
     "enable": false,
     "wither": true,
     "ravager": true
-  },
-
-  // 实体和 AI 耗时检测。启用后 /wxperf start 30 开始采样，/wxperf report 查看报告。
-  // 未采样时不做详细计时；不会自动清理实体，也不会修改其他模块的设置。
-  "performanceMonitor": {
-    "enable": true,
-    // 默认采样秒数，范围 1～600；最多记录 12000 个世界 tick。
-    "captureSeconds": 40,
-    // 慢世界 tick 阈值（不是整个服务器 MSPT），范围 1～10000 毫秒。
-    "slowTickMs": 50.0,
-    // 类型/实体各展示前多少名，范围 1～20。
-    "topCount": 12,
-    // 实体记录与优化缓存各自的数量上限，范围 128～16384。
-    "maxTrackedEntities": 4096,
-    "optimization": {
-      "enable": false,
-      // 同一实体两次原版闲逛 canUse 检查至少间隔多少世界 tick，范围 1～200。
-      "strollIntervalTicks": 10,
-      // 必须填写完整实体标识才会生效；空列表不优化。会降低闲逛发起频率。
-      // 跳过有目标、命名、驯服、拴绳、载有乘客或正在骑乘的实体。
-      "strollTypeNames": []
-    }
   }
 }

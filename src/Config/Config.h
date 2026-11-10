@@ -208,22 +208,6 @@ struct EntityCleanerConfig {
     bool                           logResult = true;
 };
 
-struct PerformanceOptimizationConfig {
-    // 只限制名单内生物发起闲逛的检查；不跳过实体 tick、战斗、导航或碰撞。
-    bool                     enable = false;
-    int                      strollIntervalTicks = 10;
-    std::vector<std::string> strollTypeNames{};
-};
-
-struct PerformanceMonitorConfig {
-    bool                          enable = false;
-    int                           captureSeconds = 30;
-    double                        slowTickMs = 50.0;
-    int                           topCount = 10;
-    int                           maxTrackedEntities = 4096;
-    PerformanceOptimizationConfig optimization{};
-};
-
 struct Config {
     int                           version                  = 22;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
@@ -247,7 +231,6 @@ struct Config {
     ExplosionControlConfig         explosionControl{};
     MobBlockDestructionConfig      mobBlockDestruction{};
     EntityCleanerConfig           entityCleaner{};
-    PerformanceMonitorConfig      performanceMonitor{};
 };
 
 } // namespace my_mod
