@@ -1,16 +1,20 @@
 add_rules("mode.debug", "mode.release")
-set_toolchains("clang-cl")
+add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
 add_repositories("levimc-repo https://github.com/LiteLDev/xmake-repo.git")
 add_repositories("yyz-repo https://github.com/yangyangzhong82/xmake-repo.git")
 
+-- add_requires("levilamina x.x.x") for a specific version
+-- add_requires("levilamina develop") to use develop version
+-- please note that you should add bdslibrary yourself if using dev version
 if is_config("target_type", "server") then
     add_requires("levilamina 26.60.6", {configs = {target_type = "server"}})
 else
-    add_requires("levilamina 26.40.4", {configs = {target_type = "client"}})
+    add_requires("levilamina", {configs = {target_type = "client"}})
 end
 
 add_requires("levibuildscript")
+add_requires("placeholder 0.7.2")
 add_requires("croncpp v2023.03.30")
 add_requires("catalyst 0.5.2")
 
@@ -28,7 +32,7 @@ target("WanXiang")
     add_rules("@levibuildscript/linkrule")
     add_rules("@levibuildscript/modpacker")
     if is_plat("windows") then
-        add_defines("NOMINMAX", "UNICODE")
+        add_defines("NOMINMAX", "UNICODE", "_HAS_CXX23=1")
         set_exceptions("none") -- To avoid conflicts with /EHa.
         add_cxflags( "/EHa", "/utf-8", "/W4", "/w44265", "/w44289", "/w44296", "/w45263", "/w44738", "/w45204")
         add_cxflags(
@@ -46,7 +50,7 @@ target("WanXiang")
         )
         set_toolchains("clang-cl")
     end
-    add_packages("levilamina", "croncpp", "catalyst")
+    add_packages("levilamina","placeholder","croncpp", "catalyst")
 
     set_kind("shared")
     set_languages("c++20")
@@ -64,10 +68,15 @@ target("WanXiang")
     --  add_files("src-client/**.cpp")
     end
     after_build(function (target)
+        local output_dir = path.join(os.projectdir(), "bin", target:name())
+        os.mkdir(output_dir)
+        os.cp(path.join(os.projectdir(), "config.jsonc"), path.join(output_dir, "config.jsonc"))
+
         local lang_src = path.join(os.projectdir(), "lang")
-        local lang_dst = path.join(os.projectdir(), "bin", target:name())
+        local lang_dst = path.join(output_dir, "lang")
         if os.isdir(lang_src) then
-            os.cp(lang_src, lang_dst)
+            os.mkdir(lang_dst)
+            os.cp(path.join(lang_src, "*"), lang_dst)
             print("Copied lang folder to " .. lang_dst)
         end
     end)
