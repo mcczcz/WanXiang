@@ -1,4 +1,11 @@
 {
+    "sidebar.enable_failed": "Failed to enable the sidebar.",
+    "sidebar.description": "Control your sidebar display",
+    "sidebar.disabled": "The sidebar is disabled. Set sidebar.enable=true in the WanXiang config and reload.",
+    "sidebar.player_only": "This command can only be used by a player.",
+    "sidebar.status_failed": "Failed to save the sidebar preference. Check the server log.",
+    "sidebar.on": "Sidebar enabled.",
+    "sidebar.off": "Sidebar disabled.",
     "plugin.loaded": "Plugin loaded",
     "plugin.enabled": "Plugin enabled",
     "plugin.unloaded": "Plugin unloaded",

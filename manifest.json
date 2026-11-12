@@ -5,5 +5,8 @@
     "type": "native",
     "platform": "${modPlatform}",
     "dependencies": [
+        {
+            "name": "Placeholder"
+        }
     ]
 }

@@ -1,7 +1,7 @@
 {
   // 原版生存服默认配置：保留原版玩法，开启经验球合并和保守的超量清理。
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
-  "version": 23,
+  "version": 24,
 
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
@@ -20,6 +20,21 @@
   "cleanUnknownBlocksEnable": false,
   // 向非管理员隐藏客户端显示的 OP 权限信息。
   "hideOpPermissionEnable": true,
+
+  // 侧边栏：支持 Placeholder 占位符、动态标题/行组及玩家开关持久化。
+  // /sidebar on|off 切换个人显示；/sidebar reload 或 /wanxiang reload 重载万象配置。
+  "sidebar": {
+    "enable": false,
+    // 没有保存过开关的新玩家默认显示侧边栏。
+    "defaultSidebarStatus": true,
+    // 刷新间隔，单位毫秒；最小为 50。
+    "updateInterval": 1000,
+    // 标题跟随当前行组索引循环选取。
+    "dynamicTitles": ["§b万象"],
+    "dynamicLines": [["§f欢迎来到服务器"]],
+    "currentLineGroupIndex": 0,
+    "lineGroupSwitchInterval": 5000
+  },
 
   // 自定义玩家攻击造成的击退；player 为受击玩家，mob 为其他受击生物。
   // 水平、垂直倍率：1=原版，0=不改变对应方向的速度，2=两倍速度变化；不接受负数。

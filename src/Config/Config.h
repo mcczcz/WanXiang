@@ -235,8 +235,18 @@ struct EntityCleanerConfig {
     bool                           logResult = true;
 };
 
+struct SidebarConfig {
+    bool                                 enable                  = false;
+    bool                                 defaultSidebarStatus    = true;
+    int                                  updateInterval          = 1000; // 毫秒
+    std::vector<std::string>              dynamicTitles           = {"§b万象"};
+    std::vector<std::vector<std::string>> dynamicLines            = {{"§f欢迎来到服务器"}};
+    int                                  currentLineGroupIndex   = 0;
+    int                                  lineGroupSwitchInterval = 5000; // 毫秒
+};
+
 struct Config {
-    int                           version                  = 23;
+    int                           version                  = 24;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "zh_CN";
     bool                          trustedSkinEnable        = true;
@@ -260,6 +270,7 @@ struct Config {
     CustomKnockbackConfig          customKnockback{};
     PistonControlConfig            pistonControl{};
     EntityCleanerConfig           entityCleaner{};
+    SidebarConfig                 sidebar{};
 };
 
 } // namespace my_mod

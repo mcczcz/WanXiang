@@ -23,6 +23,7 @@
 #include "mod/ReloadCommand.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
+#include "mod/Sidebar.h"
 #include "mod/TrustedSkin.h"
 #include "mod/UnloadedEntitiesCleaner.h"
 #include "mod/XpOrbMerge.h"
@@ -320,6 +321,12 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!sidebar::enable()) {
+        disable();
+        logger.error(tr("sidebar.enable_failed"));
+        return false;
+    }
+
     if (!reload_command::enable()) {
         disable();
         logger.error(tr("reload_command.enable_failed"));
@@ -355,6 +362,7 @@ bool Entry::reload() {
         {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
         {piston_control::enable, piston_control::disable, "pistonControl"},
         {custom_knockback::enable, custom_knockback::disable, "customKnockback"},
+        {sidebar::enable, sidebar::disable, "sidebar"},
     };
 
     auto stopFeatures = [&] {
@@ -403,6 +411,7 @@ bool Entry::reload() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    sidebar::disable();
     reload_command::disable();
     custom_knockback::disable();
     piston_control::disable();
@@ -432,6 +441,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    sidebar::disable();
     reload_command::disable();
     custom_knockback::disable();
     piston_control::disable();

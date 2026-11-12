@@ -26,6 +26,32 @@
 | `customKnockback` | 分别调整玩家攻击玩家和其他生物时的水平、垂直击退倍率 | `enable=false` |
 | `pistonControl` | 自定义方块推拉规则及实体活塞免疫 | `enable=false` |
 | `entityCleaner` | 超量时清理远离玩家的经验球和箭矢，清理前全服预告 | `enable=true` |
+| `sidebar` | 动态侧边栏，支持 Placeholder 占位符和玩家显示开关持久化 | `enable=false` |
+
+## 侧边栏
+
+
+在万象的 `config/config.json` 中配置 `sidebar`，设置 `enable=true` 后执行 `/wanxiang reload` 即可开启：
+
+```json
+"sidebar": {
+    "enable": true,
+    "defaultSidebarStatus": true,
+    "updateInterval": 1000,
+    "dynamicTitles": ["§b万象"],
+    "dynamicLines": [["§f欢迎来到服务器"]],
+    "currentLineGroupIndex": 0,
+    "lineGroupSwitchInterval": 5000
+}
+```
+
+- `/sidebar on`、`/sidebar off`：玩家开启或立即关闭自己的侧边栏。
+- `/sidebar reload`：管理员或控制台重载万象配置，等同于 `/wanxiang reload`。
+- `updateInterval`、`lineGroupSwitchInterval` 的单位均为毫秒；刷新间隔最小为 50 毫秒。
+- `dynamicLines` 中的每个数组是一组显示行；多组按间隔轮播，标题按当前行组索引循环选取。标题和显示行均支持 Placeholder 占位符。
+- 玩家开关保存在万象数据目录的 `sidebar.db`，重新登录或重载后保留。`defaultSidebarStatus` 只影响没有保存过开关的新玩家。
+
+迁移旧配置时，将原 `sidebar` 中的标题、行组和切换字段复制到万象的 `sidebar`，再将原 `enablePlugin`、`defaultSidebarStatus`、`update_interval` 分别对应填入 `sidebar.enable`、`sidebar.defaultSidebarStatus`、`sidebar.updateInterval`。原 `threadPoolSize` 不再使用，显示刷新沿用服务端线程调度。若要保留原玩家开关，停服后将原插件数据目录的 `sidebar.db` 复制到万象数据目录。
 
 ## 安装
 
@@ -56,7 +82,7 @@
 
 ```json
 {
-    "version": 23,
+    "version": 24,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -66,6 +92,15 @@
     "msptCommandEnable": true,
     "cleanUnknownBlocksEnable": false,
     "hideOpPermissionEnable": true,
+    "sidebar": {
+        "enable": false,
+        "defaultSidebarStatus": true,
+        "updateInterval": 1000,
+        "dynamicTitles": ["§b万象"],
+        "dynamicLines": [["§f欢迎来到服务器"]],
+        "currentLineGroupIndex": 0,
+        "lineGroupSwitchInterval": 5000
+    },
 
     "droppedItemLifetime": {
         "enable": false,

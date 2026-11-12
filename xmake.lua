@@ -17,6 +17,7 @@ add_requires("levibuildscript")
 add_requires("placeholder 0.7.2")
 add_requires("croncpp v2023.03.30")
 add_requires("catalyst 0.5.2")
+add_requires("sqlite3")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -50,7 +51,7 @@ target("WanXiang")
         )
         set_toolchains("clang-cl")
     end
-    add_packages("levilamina","placeholder","croncpp", "catalyst")
+    add_packages("levilamina","placeholder","croncpp", "catalyst", "sqlite3")
 
     set_kind("shared")
     set_languages("c++20")

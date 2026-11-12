@@ -1,4 +1,11 @@
 {
+    "sidebar.enable_failed": "侧边栏启用失败。",
+    "sidebar.description": "控制自己的侧边栏显示",
+    "sidebar.disabled": "侧边栏功能未启用，请在万象配置中设置 sidebar.enable=true 后重载。",
+    "sidebar.player_only": "该指令只能由玩家执行。",
+    "sidebar.status_failed": "保存侧边栏开关失败，请查看服务端日志。",
+    "sidebar.on": "侧边栏已开启。",
+    "sidebar.off": "侧边栏已关闭。",
     "plugin.loaded": "插件已加载",
     "plugin.enabled": "插件已启用",
     "plugin.unloaded": "插件已卸载",
