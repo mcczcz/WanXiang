@@ -23,6 +23,7 @@
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
 | `coResourcePack` | 服务器材质包与玩家自己的材质包共存 | `enable=false` |
 | `mobBlockDestruction` | 禁止凋灵和掠夺兽破坏方块 | `enable=false` |
+| `pistonControl` | 自定义方块推拉规则及实体活塞免疫 | `enable=false` |
 | `entityCleaner` | 超量时清理远离玩家的经验球和箭矢，清理前全服预告 | `enable=true` |
 
 ## 安装
@@ -40,7 +41,7 @@
    ```
 
 3. 启动一次服务器。模组会自动创建 `plugins/WanXiang/config/config.json`。
-4. 修改配置后执行 `/wanxiang reload` 重载运行时功能；命令注册、命令权限和未加载实体清理的修改仍需重启服务器。
+4. 修改配置后执行 `/wanxiang reload` 重载运行时功能；命令注册、命令权限、未加载实体清理和活塞方块推动规则的修改仍需重启服务器。
 
 如果使用源码构建，构建产物会在 `bin/` 目录生成，通常直接使用 `bin/WanXiang.zip` 安装即可。
 
@@ -54,7 +55,7 @@
 
 ```json
 {
-    "version": 22,
+    "version": 23,
     "logLevel": 3,
     "language": "zh_CN",
 
@@ -122,6 +123,11 @@
         "forceRequired": true,
         "markAsAddonPack": true,
         "allowClientPacks": true
+    },
+    "pistonControl": {
+        "enable": false,
+        "customPistonBlocks": {},
+        "pistonImmuneEntities": []
     },
     "mobBlockDestruction": {
         "enable": false,
@@ -207,6 +213,31 @@
 
 `language` 目前随包提供 `zh_CN` 和 `en_US`。找不到指定语言时会回退到中文；也可以在 `lang/` 目录放入同格式的 `<语言代码>.json` 扩展翻译。
 
+### 活塞控制：`pistonControl`
+
+整合 PistonControl 的方块推动规则和实体活塞免疫功能，默认关闭。将原插件的 `customPistonBlocks` 和 `pistonImmuneEntities` 移到 `pistonControl` 内，并将 `enable` 设为 `true` 即可使用。
+
+```json
+"pistonControl": {
+    "enable": true,
+    "customPistonBlocks": {
+        "minecraft:stone": { "movementType": 3, "stickyType": 0 },
+        "minecraft:glass": { "movementType": 1, "stickyType": 0 }
+    },
+    "pistonImmuneEntities": ["minecraft:armor_stand", "minecraft:pig"]
+}
+```
+
+| 字段 | 说明 |
+| --- | --- |
+| `enable` | 活塞控制总开关，默认 `false` |
+| `customPistonBlocks` | 方块完整 ID 到推动规则的映射；空对象表示不修改 |
+| `movementType` | `0` 可推动和拉回，`1` 只能推动，`2` 推动时破坏，`3` 不可移动 |
+| `stickyType` | `0` 无黏性，`1` 黏性 |
+| `pistonImmuneEntities` | 实体完整 ID 数组；空数组表示不启用免疫，`["*"]` 匹配所有实体 |
+
+免疫名单中的实体不会被活塞推动，并可穿过移动方块及伸出的活塞臂，活塞本体仍保持碰撞。实体免疫名单及其开关可通过 `/wanxiang reload` 生效。方块规则在启动时应用到注册表中的方块状态；修改、删除规则或关闭已经应用的方块规则后，需要重启服务器。
+
 ### 单项开关功能
 
 这些功能只有一个布尔开关，改为 `false` 即可关闭：
@@ -242,7 +273,7 @@ OP 玩家执行 `/wanxiang reload`，或在服务端控制台执行 `wanxiang re
 
 重载会取消尚未执行的树叶腐烂回调、实体清理倒计时，并重新计算定时任务的下一次执行时间。未加载实体数据库清理不会因重载再次执行。客户端存档名称和资源包选项在后续发送对应数据包时生效，已在线玩家通常需要重新加入。
 
-`abilityCommandEnable`、`msptCommandEnable`、`commandPermissions` 和 `unloadedEntitiesCleaner` 的修改仍需重启服务器；重载不会重新注册已有命令或修改其权限要求。语言文件内容的修改也需重启，重载只切换 `language` 指定的已加载语言。
+`abilityCommandEnable`、`msptCommandEnable`、`commandPermissions`、`unloadedEntitiesCleaner` 和 `pistonControl.customPistonBlocks` 的修改仍需重启服务器；重载不会重新注册已有命令或修改其权限要求，也不会重新应用或恢复活塞方块推动规则。语言文件内容的修改也需重启，重载只切换 `language` 指定的已加载语言。
 
 ### 掉落物存在时间：`droppedItemLifetime`
 

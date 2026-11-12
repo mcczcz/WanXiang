@@ -1,7 +1,7 @@
 {
   // 原版生存服默认配置：保留原版玩法，开启经验球合并和保守的超量清理。
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
-  "version": 22,
+  "version": 23,
 
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
@@ -218,6 +218,19 @@
     "enable": false,
     // 规则的 sourceType 使用 * 匹配所有来源、<none> 匹配没有实体来源的爆炸。
     "rules": []
+  },
+
+  // 活塞控制。默认关闭；开启后按下面的方块规则和实体名单生效。
+  "pistonControl": {
+    "enable": false,
+    // 方块规则在启动时应用，修改规则或关闭已应用的规则后需要重启服务器。
+    // 方块 ID -> { "movementType": 0, "stickyType": 0 }。
+    // movementType：0=可推拉，1=只推不拉，2=推动时破坏，3=不可移动。
+    // stickyType：0=无黏性，1=黏性。空对象表示不修改原版规则。
+    "customPistonBlocks": {},
+    // 免疫活塞推动及移动方块、活塞臂碰撞的实体完整 ID；支持 /wanxiang reload。
+    // 例如 ["minecraft:armor_stand", "minecraft:pig"]；["*"] 匹配所有实体。
+    "pistonImmuneEntities": []
   },
 
   // 生物方块破坏控制。用于禁止凋灵和掠夺兽破坏方块。

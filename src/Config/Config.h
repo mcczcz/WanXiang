@@ -1,12 +1,28 @@
 #pragma once
 
 #include "ll/api/io/LogLevel.h"
+#include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+enum class MovementType : unsigned char;
+enum class StickyType : unsigned char;
+
 namespace my_mod {
+
+struct PistonBlockConfig {
+    MovementType movementType = static_cast<MovementType>(0); // PushPull
+    StickyType   stickyType   = static_cast<StickyType>(0);   // None
+};
+
+struct PistonControlConfig {
+    bool                                    enable = false;
+    std::map<std::string, PistonBlockConfig> customPistonBlocks{};
+    std::set<std::string>                    pistonImmuneEntities{};
+};
 
 struct XpOrbMergeConfig {
     bool  enable        = true;
@@ -209,7 +225,7 @@ struct EntityCleanerConfig {
 };
 
 struct Config {
-    int                           version                  = 22;
+    int                           version                  = 23;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
     std::string                   language                 = "zh_CN";
     bool                          trustedSkinEnable        = true;
@@ -230,6 +246,7 @@ struct Config {
     CoResourcePackConfig          coResourcePack{};
     ExplosionControlConfig         explosionControl{};
     MobBlockDestructionConfig      mobBlockDestruction{};
+    PistonControlConfig            pistonControl{};
     EntityCleanerConfig           entityCleaner{};
 };
 

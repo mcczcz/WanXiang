@@ -18,6 +18,7 @@
 #include "mod/MobBlockDestruction.h"
 #include "mod/MobEffectBlocker.h"
 #include "mod/MsptCommand.h"
+#include "mod/PistonControl.h"
 #include "mod/ReloadCommand.h"
 #include "mod/ScheduledCommand.h"
 #include "mod/ServerPong.h"
@@ -305,6 +306,13 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!piston_control::enable()) {
+        disable();
+        logger.error(tr("piston_control.enable_failed"));
+        return false;
+    }
+    piston_control::applyBlockConfig();
+
     if (!reload_command::enable()) {
         disable();
         logger.error(tr("reload_command.enable_failed"));
@@ -321,7 +329,7 @@ bool Entry::reload() {
         void (*disable)();
         const char* name;
     };
-    // Command registration and startup database cleanup require a server restart.
+    // Command registration, startup database cleanup and piston block rules require a server restart.
     static constexpr Feature features[] = {
         {trusted_skin::enable, trusted_skin::disable, "trustedSkin"},
         {auto_fishing::enable, auto_fishing::disable, "autoFishing"},
@@ -338,6 +346,7 @@ bool Entry::reload() {
         {entity_cleaner::enable, entity_cleaner::disable, "entityCleaner"},
         {co_resource_pack::enable, co_resource_pack::disable, "coResourcePack"},
         {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
+        {piston_control::enable, piston_control::disable, "pistonControl"},
     };
 
     auto stopFeatures = [&] {
@@ -387,6 +396,7 @@ bool Entry::reload() {
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
     reload_command::disable();
+    piston_control::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
     entity_cleaner::disable();
@@ -414,6 +424,7 @@ bool Entry::disable() {
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
     reload_command::disable();
+    piston_control::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
     entity_cleaner::disable();

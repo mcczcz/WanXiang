@@ -12,7 +12,7 @@ end
 
 add_requires("levibuildscript")
 add_requires("croncpp v2023.03.30")
-add_requires("catalyst 0.5.1")
+add_requires("catalyst 0.5.2")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
