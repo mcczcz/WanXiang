@@ -2,6 +2,8 @@
     "plugin.loaded": "Plugin loaded",
     "plugin.enabled": "Plugin enabled",
     "plugin.unloaded": "Plugin unloaded",
+    "custom_knockback.enable_failed": "Failed to register the custom knockback hook.",
+    "custom_knockback.invalid_multiplier": "Custom knockback horizontal and vertical multipliers must be finite, non-negative numbers.",
     "config.loaded": "Config loaded",
     "config.saved": "Config saved",
     "config.not_found": "Config file not found, creating a new one at: {}",

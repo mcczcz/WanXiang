@@ -142,6 +142,17 @@ struct MobBlockDestructionConfig {
     bool ravager = true;
 };
 
+struct KnockbackMultiplierConfig {
+    float horizontal = 1.0F;
+    float vertical   = 1.0F;
+};
+
+struct CustomKnockbackConfig {
+    bool                      enable = false;
+    KnockbackMultiplierConfig player{}; // 玩家攻击玩家
+    KnockbackMultiplierConfig mob{};    // 玩家攻击其他生物
+};
+
 struct EntityCleanerScheduleConfig {
     bool        enable = false;
     std::string cron   = "0 */10 * * * *"; // 每 10 分钟
@@ -246,6 +257,7 @@ struct Config {
     CoResourcePackConfig          coResourcePack{};
     ExplosionControlConfig         explosionControl{};
     MobBlockDestructionConfig      mobBlockDestruction{};
+    CustomKnockbackConfig          customKnockback{};
     PistonControlConfig            pistonControl{};
     EntityCleanerConfig           entityCleaner{};
 };

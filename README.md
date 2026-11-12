@@ -23,6 +23,7 @@
 | `clientLevelName` | 修改客户端进入世界时显示的存档名称 | `enable=false` |
 | `coResourcePack` | 服务器材质包与玩家自己的材质包共存 | `enable=false` |
 | `mobBlockDestruction` | 禁止凋灵和掠夺兽破坏方块 | `enable=false` |
+| `customKnockback` | 分别调整玩家攻击玩家和其他生物时的水平、垂直击退倍率 | `enable=false` |
 | `pistonControl` | 自定义方块推拉规则及实体活塞免疫 | `enable=false` |
 | `entityCleaner` | 超量时清理远离玩家的经验球和箭矢，清理前全服预告 | `enable=true` |
 
@@ -70,6 +71,11 @@
         "enable": false,
         "defaultSeconds": 300,
         "items": {}
+    },
+    "customKnockback": {
+        "enable": false,
+        "player": { "horizontal": 1.0, "vertical": 1.0 },
+        "mob": { "horizontal": 1.0, "vertical": 1.0 }
     },
 
     "xpOrbMerge": {
@@ -196,6 +202,22 @@
     }
 }
 ```
+
+### 自定义击退：`customKnockback`
+
+调整玩家攻击造成的击退，按受击对象分开配置：`player` 用于受击玩家，`mob` 用于其他受击生物。默认关闭，修改开关或倍率后执行 `/wanxiang reload` 生效。
+
+```json
+"customKnockback": {
+    "enable": true,
+    "player": { "horizontal": 1.2, "vertical": 0.8 },
+    "mob": { "horizontal": 1.0, "vertical": 1.0 }
+}
+```
+
+`horizontal` 控制水平倍率，`vertical` 控制垂直倍率。`1` 保留原版，`0` 表示这次击退不改变对应方向的速度，`2` 表示两倍速度变化；数值必须为非负有限数。倍率作用于原版计算出的本次速度变化，保留原版击退抗性、附魔和垂直限速计算，不会额外放大受击前已有的速度。
+
+仅处理击退来源实体为玩家的调用；生物攻击、无玩家来源的击退以及爆炸控制仍使用原来的逻辑。
 
 ### 生物方块破坏：`mobBlockDestruction`
 

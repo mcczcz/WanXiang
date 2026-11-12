@@ -9,6 +9,7 @@
 #include "mod/ClientLevelName.h"
 #include "mod/CoResourcePack.h"
 #include "mod/CommandPermission.h"
+#include "mod/CustomKnockback.h"
 #include "mod/DroppedItemLifetime.h"
 #include "mod/EntityCleaner.h"
 #include "mod/EntityCleanerCommand.h"
@@ -313,6 +314,12 @@ bool Entry::enable() {
     }
     piston_control::applyBlockConfig();
 
+    if (!custom_knockback::enable()) {
+        disable();
+        logger.error(tr("custom_knockback.enable_failed"));
+        return false;
+    }
+
     if (!reload_command::enable()) {
         disable();
         logger.error(tr("reload_command.enable_failed"));
@@ -347,6 +354,7 @@ bool Entry::reload() {
         {co_resource_pack::enable, co_resource_pack::disable, "coResourcePack"},
         {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
         {piston_control::enable, piston_control::disable, "pistonControl"},
+        {custom_knockback::enable, custom_knockback::disable, "customKnockback"},
     };
 
     auto stopFeatures = [&] {
@@ -396,6 +404,7 @@ bool Entry::reload() {
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
     reload_command::disable();
+    custom_knockback::disable();
     piston_control::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();
@@ -424,6 +433,7 @@ bool Entry::disable() {
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
     reload_command::disable();
+    custom_knockback::disable();
     piston_control::disable();
     mob_block_destruction::disable();
     co_resource_pack::disable();

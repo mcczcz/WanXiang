@@ -2,6 +2,8 @@
     "plugin.loaded": "插件已加载",
     "plugin.enabled": "插件已启用",
     "plugin.unloaded": "插件已卸载",
+    "custom_knockback.enable_failed": "自定义击退 Hook 注册失败。",
+    "custom_knockback.invalid_multiplier": "自定义击退的水平、垂直倍率必须为大于等于 0 的有限数值。",
     "config.loaded": "配置已加载",
     "config.saved": "配置已保存",
     "config.not_found": "配置文件未找到，正在创建新文件: {}",

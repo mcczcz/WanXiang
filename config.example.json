@@ -21,6 +21,15 @@
   // 向非管理员隐藏客户端显示的 OP 权限信息。
   "hideOpPermissionEnable": true,
 
+  // 自定义玩家攻击造成的击退；player 为受击玩家，mob 为其他受击生物。
+  // 水平、垂直倍率：1=原版，0=不改变对应方向的速度，2=两倍速度变化；不接受负数。
+  // 修改后执行 /wanxiang reload 生效。
+  "customKnockback": {
+    "enable": false,
+    "player": { "horizontal": 1.0, "vertical": 1.0 },
+    "mob": { "horizontal": 1.0, "vertical": 1.0 }
+  },
+
   // 修改掉落物存在时间。只影响启用后新生成的掉落物。
   "droppedItemLifetime": {
     "enable": false,
