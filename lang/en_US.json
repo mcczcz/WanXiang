@@ -147,5 +147,12 @@
     "mspt_command.description": "View the current server MSPT and TPS.",
     "mspt_command.registered": "Registered the MSPT/TPS query command: /mspt.",
     "mspt_command.enable_failed": "Failed to register the MSPT/TPS query command.",
-    "mspt_command.result": "Current MSPT: {:.2f} ms, TPS: {:.2f}"
+    "mspt_command.result": "Current MSPT: {:.2f} ms, TPS: {:.2f}",
+    "vanish.description": "Toggle your vanish state.",
+    "vanish.op_only": "Only operators can use the vanish command.",
+    "vanish.player_only": "This command can only be used by players.",
+    "vanish.disabled": "Vanish is currently unavailable.",
+    "vanish.on": "Vanish enabled.",
+    "vanish.off": "Vanish disabled.",
+    "vanish.enable_failed": "Failed to enable vanish."
 }

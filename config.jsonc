@@ -16,6 +16,9 @@
   "abilityCommandEnable": true,
   // 注册 /mspt 命令，供玩家查看当前 MSPT 和 TPS。
   "msptCommandEnable": true,
+  // 启用 /vanish 隐身功能，仅 OP 可用。修改后执行 /wanxiang reload 生效。
+  // 重载会结束当前玩家的隐身状态；关闭后命令保留，但无法使用。
+  "vanishEnable": true,
   // 区块加载时清理无法识别的方块。操作不可恢复。
   "cleanUnknownBlocksEnable": false,
   // 向非管理员隐藏客户端显示的 OP 权限信息。

@@ -253,6 +253,7 @@ struct Config {
     bool                          autoFishingEnable        = false;
     bool                          abilityCommandEnable     = true;
     bool                          msptCommandEnable        = true;
+    bool                          vanishEnable             = true;
     bool                          cleanUnknownBlocksEnable = false;
     bool                          hideOpPermissionEnable   = true;
     DroppedItemLifetimeConfig     droppedItemLifetime{};

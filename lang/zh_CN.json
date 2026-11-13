@@ -147,5 +147,12 @@
     "mspt_command.description": "查看当前服务器 MSPT 和 TPS。",
     "mspt_command.registered": "已注册 MSPT/TPS 查询命令：/mspt。",
     "mspt_command.enable_failed": "MSPT/TPS 查询命令注册失败。",
-    "mspt_command.result": "当前 MSPT：{:.2f} ms，TPS：{:.2f}"
+    "mspt_command.result": "当前 MSPT：{:.2f} ms，TPS：{:.2f}",
+    "vanish.description": "切换自身隐身状态。",
+    "vanish.op_only": "只有 OP 才能使用隐身命令。",
+    "vanish.player_only": "此命令只能由玩家使用。",
+    "vanish.disabled": "隐身功能当前不可用。",
+    "vanish.on": "已开启隐身。",
+    "vanish.off": "已关闭隐身。",
+    "vanish.enable_failed": "隐身功能启用失败。"
 }

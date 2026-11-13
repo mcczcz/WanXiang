@@ -1,6 +1,14 @@
 add_rules("mode.debug", "mode.release")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
-
+rule("build.single_job")
+    set_kind("project")
+    before_build(function ()
+        import("core.base.option")
+        if not option.options().jobs then
+            option.options().jobs = 1
+        end
+    end)
+rule_end()
 add_repositories("levimc-repo https://github.com/LiteLDev/xmake-repo.git")
 add_repositories("yyz-repo https://github.com/yangyangzhong82/xmake-repo.git")
 
@@ -8,7 +16,7 @@ add_repositories("yyz-repo https://github.com/yangyangzhong82/xmake-repo.git")
 -- add_requires("levilamina develop") to use develop version
 -- please note that you should add bdslibrary yourself if using dev version
 if is_config("target_type", "server") then
-    add_requires("levilamina 26.60.6", {configs = {target_type = "server"}})
+    add_requires("levilamina 26.60.7", {configs = {target_type = "server"}})
 else
     add_requires("levilamina", {configs = {target_type = "client"}})
 end

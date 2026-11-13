@@ -26,6 +26,7 @@
 #include "mod/Sidebar.h"
 #include "mod/TrustedSkin.h"
 #include "mod/UnloadedEntitiesCleaner.h"
+#include "mod/Vanish.h"
 #include "mod/XpOrbMerge.h"
 #include <filesystem>
 #include <exception>
@@ -333,6 +334,12 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!vanish::enable()) {
+        disable();
+        logger.error(tr("vanish.enable_failed"));
+        return false;
+    }
+
     logger.info(tr("plugin.enabled"));
     return true;
 }
@@ -363,6 +370,7 @@ bool Entry::reload() {
         {piston_control::enable, piston_control::disable, "pistonControl"},
         {custom_knockback::enable, custom_knockback::disable, "customKnockback"},
         {sidebar::enable, sidebar::disable, "sidebar"},
+        {vanish::enable, vanish::disable, "vanish"},
     };
 
     auto stopFeatures = [&] {
@@ -411,6 +419,7 @@ bool Entry::reload() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    vanish::disable();
     sidebar::disable();
     reload_command::disable();
     custom_knockback::disable();
@@ -441,6 +450,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    vanish::disable();
     sidebar::disable();
     reload_command::disable();
     custom_knockback::disable();
