@@ -5,6 +5,7 @@
 #include "ll/api/mod/RegisterHelper.h"
 #include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
+#include "mod/AutoReplenish.h"
 #include "mod/CleanUnknownBlocks.h"
 #include "mod/ClientLevelName.h"
 #include "mod/CoResourcePack.h"
@@ -28,10 +29,11 @@
 #include "mod/UnloadedEntitiesCleaner.h"
 #include "mod/Vanish.h"
 #include "mod/XpOrbMerge.h"
-#include <filesystem>
 #include <exception>
+#include <filesystem>
 #include <iterator>
 #include <utility>
+
 
 namespace my_mod {
 ll::io::Logger& logger = Entry::getInstance().getSelf().getLogger();
@@ -55,7 +57,7 @@ bool Entry::load() {
     if (!std::filesystem::exists(configPath)) {
         std::filesystem::create_directories(configPath);
     }
-    configPath /= "config.json";
+    configPath /= "config.jsonc";
     configPath.make_preferred();
 
     if (!ConfigManager::getInstance().load(configPath.string())) {
@@ -340,6 +342,12 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!auto_replenish::enable()) {
+        disable();
+        logger.error(tr("auto_replenish.enable_failed"));
+        return false;
+    }
+
     logger.info(tr("plugin.enabled"));
     return true;
 }
@@ -352,25 +360,26 @@ bool Entry::reload() {
     };
     // Command registration, startup database cleanup and piston block rules require a server restart.
     static constexpr Feature features[] = {
-        {trusted_skin::enable, trusted_skin::disable, "trustedSkin"},
-        {auto_fishing::enable, auto_fishing::disable, "autoFishing"},
-        {xp_orb_merge::enable, xp_orb_merge::disable, "xpOrbMerge"},
-        {mob_effect_blocker::enable, mob_effect_blocker::disable, "mobEffectBlocker"},
-        {fast_leaf_decay::enable, fast_leaf_decay::disable, "fastLeafDecay"},
-        {clean_unknown_blocks::enable, clean_unknown_blocks::disable, "cleanUnknownBlocks"},
-        {hide_op_permission::enable, hide_op_permission::disable, "hideOpPermission"},
-        {scheduled_command::enable, scheduled_command::disable, "scheduledCommands"},
-        {server_pong::enable, server_pong::disable, "serverPong"},
-        {explosion_control::enable, explosion_control::disable, "explosionControl"},
-        {client_level_name::enable, client_level_name::disable, "clientLevelName"},
+        {trusted_skin::enable,          trusted_skin::disable,          "trustedSkin"        },
+        {auto_fishing::enable,          auto_fishing::disable,          "autoFishing"        },
+        {auto_replenish::enable,        auto_replenish::disable,        "autoReplenish"      },
+        {xp_orb_merge::enable,          xp_orb_merge::disable,          "xpOrbMerge"         },
+        {mob_effect_blocker::enable,    mob_effect_blocker::disable,    "mobEffectBlocker"   },
+        {fast_leaf_decay::enable,       fast_leaf_decay::disable,       "fastLeafDecay"      },
+        {clean_unknown_blocks::enable,  clean_unknown_blocks::disable,  "cleanUnknownBlocks" },
+        {hide_op_permission::enable,    hide_op_permission::disable,    "hideOpPermission"   },
+        {scheduled_command::enable,     scheduled_command::disable,     "scheduledCommands"  },
+        {server_pong::enable,           server_pong::disable,           "serverPong"         },
+        {explosion_control::enable,     explosion_control::disable,     "explosionControl"   },
+        {client_level_name::enable,     client_level_name::disable,     "clientLevelName"    },
         {dropped_item_lifetime::enable, dropped_item_lifetime::disable, "droppedItemLifetime"},
-        {entity_cleaner::enable, entity_cleaner::disable, "entityCleaner"},
-        {co_resource_pack::enable, co_resource_pack::disable, "coResourcePack"},
+        {entity_cleaner::enable,        entity_cleaner::disable,        "entityCleaner"      },
+        {co_resource_pack::enable,      co_resource_pack::disable,      "coResourcePack"     },
         {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
-        {piston_control::enable, piston_control::disable, "pistonControl"},
-        {custom_knockback::enable, custom_knockback::disable, "customKnockback"},
-        {sidebar::enable, sidebar::disable, "sidebar"},
-        {vanish::enable, vanish::disable, "vanish"},
+        {piston_control::enable,        piston_control::disable,        "pistonControl"      },
+        {custom_knockback::enable,      custom_knockback::disable,      "customKnockback"    },
+        {sidebar::enable,               sidebar::disable,               "sidebar"            },
+        {vanish::enable,                vanish::disable,                "vanish"             },
     };
 
     auto stopFeatures = [&] {
@@ -393,7 +402,7 @@ bool Entry::reload() {
         return true;
     };
 
-    Config previousConfig = config;
+    Config     previousConfig   = config;
     auto const previousLanguage = I18n::getInstance().getLanguage();
     if (!ConfigManager::getInstance().reload()) {
         return false;
@@ -419,6 +428,7 @@ bool Entry::reload() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    auto_replenish::disable();
     vanish::disable();
     sidebar::disable();
     reload_command::disable();
@@ -450,6 +460,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    auto_replenish::disable();
     vanish::disable();
     sidebar::disable();
     reload_command::disable();

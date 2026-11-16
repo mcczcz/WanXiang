@@ -251,6 +251,7 @@ struct Config {
     std::string                   language                 = "zh_CN";
     bool                          trustedSkinEnable        = true;
     bool                          autoFishingEnable        = false;
+    bool                          autoReplenishEnable      = true;
     bool                          abilityCommandEnable     = true;
     bool                          msptCommandEnable        = true;
     bool                          vanishEnable             = true;

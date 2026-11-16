@@ -8,6 +8,7 @@
 | --- | --- | --- |
 | `trustedSkinEnable` | 将玩家皮肤标记为可信任皮肤 | `true` |
 | `autoFishingEnable` | 钓鱼成功后自动收杆并重新抛竿 | `false` |
+| `autoReplenishEnable` | 主手物品耗尽或工具损坏后自动补充同类型物品，支持重载 | `true` |
 | `abilityCommandEnable` | 强制注册原版 `/ability` 命令 | `true` |
 | `msptCommandEnable` | 注册 `/mspt` MSPT/TPS 查询命令 | `true` |
 | `vanishEnable` | 启用仅 OP 可用的 `/vanish` 隐身命令，支持重载 | `true` |
@@ -89,6 +90,7 @@
 
     "trustedSkinEnable": true,
     "autoFishingEnable": false,
+    "autoReplenishEnable": true,
     "abilityCommandEnable": true,
     "msptCommandEnable": true,
     "vanishEnable": true,
@@ -305,6 +307,7 @@
 {
     "trustedSkinEnable": false,
     "autoFishingEnable": false,
+    "autoReplenishEnable": false,
     "abilityCommandEnable": false,
     "msptCommandEnable": false,
     "cleanUnknownBlocksEnable": false,
@@ -314,6 +317,7 @@
 
 - **可信任皮肤（`trustedSkinEnable`）**：将服务端判定的玩家皮肤标记为可信任皮肤。只影响皮肤信任标记，不会修改皮肤文件。
 - **自动钓鱼（`autoFishingEnable`）**：鱼钩成功钓到物品后自动执行收杆/重新抛竿动作。玩家仍需正常抛出鱼竿，建议先在测试世界验证与其他钓鱼插件的兼容性。
+- **物品自动补充（`autoReplenishEnable`）**：主手物品因使用、放置而耗尽，或工具耐久耗尽损坏后，从背包及其他快捷栏中寻找同类型物品，将整组移入原主手槽位。普通物品同时匹配数据值；工具允许耐久、附魔和名称不同，并保留备用工具自身的数据。仅补充空主手，不覆盖碗、空桶等使用后的剩余物品；主动丢弃、整理背包不会触发。修改后执行 `/wanxiang reload` 生效。
 - **Ability 命令（`abilityCommandEnable`）**：在服务端注册原版 `/ability` 命令，即使当前不是教育版模式也会尝试注册。启用后可按原版语法使用，例如 `/ability Steve mayfly true`。
 - **MSPT/TPS 命令（`msptCommandEnable`）**：注册 `/mspt` 查询命令。关闭后不会注册该命令。
 - **隐身（`vanishEnable`）**：仅 OP 可用，执行 `/vanish` 切换自身隐身。修改后执行 `/wanxiang reload` 生效；重载会结束所有玩家当前的隐身状态。关闭后命令保留，但无法使用。

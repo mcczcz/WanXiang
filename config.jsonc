@@ -2,16 +2,16 @@
   // 原版生存服默认配置：保留原版玩法，开启经验球合并和保守的超量清理。
   // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
   "version": 24,
-
   // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
   "logLevel": 3,
   // 翻译文件名，不含 .json。随包提供 zh_CN 和 en_US。
   "language": "zh_CN",
-
   // 将玩家皮肤标记为可信任皮肤。
   "trustedSkinEnable": true,
   // 钓鱼成功后自动收杆并重新抛竿。
   "autoFishingEnable": false,
+  // 主手物品耗尽或工具损坏后，从背包及其他快捷栏补充同类型物品。
+  "autoReplenishEnable": true,
   // 注册原版 /ability 命令。
   "abilityCommandEnable": true,
   // 注册 /mspt 命令，供玩家查看当前 MSPT 和 TPS。
@@ -23,7 +23,6 @@
   "cleanUnknownBlocksEnable": false,
   // 向非管理员隐藏客户端显示的 OP 权限信息。
   "hideOpPermissionEnable": true,
-
   // 侧边栏：支持 Placeholder 占位符、动态标题/行组及玩家开关持久化。
   // /sidebar on|off 切换个人显示；/sidebar reload 或 /wanxiang reload 重载万象配置。
   "sidebar": {
@@ -33,21 +32,31 @@
     // 刷新间隔，单位毫秒；最小为 50。
     "updateInterval": 1000,
     // 标题跟随当前行组索引循环选取。
-    "dynamicTitles": ["§b万象"],
-    "dynamicLines": [["§f欢迎来到服务器"]],
+    "dynamicTitles": [
+      "§b万象"
+    ],
+    "dynamicLines": [
+      [
+        "§f欢迎来到服务器"
+      ]
+    ],
     "currentLineGroupIndex": 0,
     "lineGroupSwitchInterval": 5000
   },
-
   // 自定义玩家攻击造成的击退；player 为受击玩家，mob 为其他受击生物。
   // 水平、垂直倍率：1=原版，0=不改变对应方向的速度，2=两倍速度变化；不接受负数。
   // 修改后执行 /wanxiang reload 生效。
   "customKnockback": {
     "enable": false,
-    "player": { "horizontal": 1.0, "vertical": 1.0 },
-    "mob": { "horizontal": 1.0, "vertical": 1.0 }
+    "player": {
+      "horizontal": 1.0,
+      "vertical": 1.0
+    },
+    "mob": {
+      "horizontal": 1.0,
+      "vertical": 1.0
+    }
   },
-
   // 修改掉落物存在时间。只影响启用后新生成的掉落物。
   "droppedItemLifetime": {
     "enable": false,
@@ -59,7 +68,6 @@
       // "minecraft:nether_star": 1800
     }
   },
-
   // 合并同一维度内指定半径范围的经验球。
   "xpOrbMerge": {
     "enable": true,
@@ -67,7 +75,6 @@
     // 检查间隔，单位为游戏刻；20 刻约等于 1 秒。
     "intervalTicks": 20
   },
-
   // 阻止状态效果触发的附带行为。
   "mobEffectBlocker": {
     "enable": false,
@@ -76,7 +83,6 @@
     "oozing": true,
     "windCharged": false
   },
-
   // 原木或树叶被破坏后，加速清理无支撑的非持久树叶。
   "fastLeafDecay": {
     "enable": false,
@@ -84,7 +90,6 @@
     "minDelayTicks": 2,
     "maxDelayTicks": 8
   },
-
   // 服务器启动时清理世界数据库中的未加载实体记录，仅执行一次。
   // entityTypeNamesToClean 为空表示清理全部未加载实体，操作不可恢复。
   "unloadedEntitiesCleaner": {
@@ -95,21 +100,18 @@
     "writeCleanupResultToTextLog": false,
     "cleanupResultTextLogFile": "cleanup-result.log"
   },
-
   // 按 Cron 表达式执行服务端命令。Cron 为 6 段：秒 分 时 月内日期 月 星期。
   "scheduledCommands": {
     "enable": false,
     // 任务中的 command 不要带开头的 /；命令以服务端 Owner 权限执行。
     "tasks": []
   },
-
   // 覆盖命令注册时的权限等级。修改后需要重启服务器。
   "commandPermissions": {
     "enable": false,
     // 规则的 permissionLevel 可选：Any、GameDirectors、Admin、Host、Owner、Internal。
     "rules": []
   },
-
   // 修改客户端服务器列表中显示的 MOTD 和人数。
   "serverPong": {
     "enable": false,
@@ -120,13 +122,11 @@
     "maxPlayerCountEnable": false,
     "maxPlayerCount": 0
   },
-
   // 修改客户端进入世界时显示的存档名称，不会修改世界实际名称。
   "clientLevelName": {
     "enable": false,
     "name": ""
   },
-
   // 资源包共存：服务器材质包和玩家自己启用的材质包同时生效。
   // 原版把「必须下载服务器材质包」和「进服后禁用玩家自己的材质包」绑在一起，
   // 下面三个开关分别对应拆开它所需要改的封包字段，通常保持默认即可。
@@ -139,7 +139,6 @@
     // 不再因为「世界要求材质包」而踢掉玩家自己启用的材质包。
     "allowClientPacks": true
   },
-
   // 生存服默认仅在经验球/箭矢超量时清理；保留掉落物、怪物和玩家附近实体。
   "entityCleaner": {
     "enable": true,
@@ -192,7 +191,10 @@
       // whitelist=只清理名单内类型/family；blacklist=名单内受保护，其余清理。
       "mode": "whitelist",
       // 不包含 minecraft:item 或 monster，保留死亡掉落物和生存农场中的生物。
-      "typeNames": ["minecraft:xp_orb", "minecraft:arrow"],
+      "typeNames": [
+        "minecraft:xp_orb",
+        "minecraft:arrow"
+      ],
       "families": []
     },
     "protection": {
@@ -228,7 +230,9 @@
     "warning": {
       "enable": true,
       // 清理前广播的倒计时秒数；空数组表示触发即清理。
-      "secondsBefore": [15],
+      "secondsBefore": [
+        15
+      ],
       // 空字符串使用当前语言的默认提示；{seconds} 为剩余秒数，支持 § 颜色代码。
       "message": "",
       // 是否向全服广播实际清理结果；不受上面的预告 enable 开关影响。
@@ -239,14 +243,12 @@
     // 是否在日志中输出按实体类型分组的删除统计。
     "logResult": true
   },
-
   // 爆炸控制。规则按顺序应用；可选覆盖字段为 null 时保持原版值。
   "explosionControl": {
     "enable": false,
     // 规则的 sourceType 使用 * 匹配所有来源、<none> 匹配没有实体来源的爆炸。
     "rules": []
   },
-
   // 活塞控制。默认关闭；开启后按下面的方块规则和实体名单生效。
   "pistonControl": {
     "enable": false,
@@ -259,7 +261,6 @@
     // 例如 ["minecraft:armor_stand", "minecraft:pig"]；["*"] 匹配所有实体。
     "pistonImmuneEntities": []
   },
-
   // 生物方块破坏控制。用于禁止凋灵和掠夺兽破坏方块。
   "mobBlockDestruction": {
     "enable": false,

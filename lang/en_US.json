@@ -54,6 +54,7 @@
     "example.player_join_welcome": "[Example] Welcome to the server, {}!",
     "trusted_skin.enable_failed": "Failed to register the trusted-skin hook.",
     "auto_fishing.enable_failed": "Failed to register the auto-fishing hook.",
+    "auto_replenish.enable_failed": "Failed to register the auto-replenish hooks.",
     "ability_command.enable_failed": "Failed to register the vanilla ability command hook.",
     "ability_command.registered": "Force-registered the vanilla ability command.",
     "ability_command.register_failed": "The vanilla ability command is absent after registration.",
