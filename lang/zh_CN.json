@@ -89,6 +89,7 @@
     "scheduled_command.enable_failed": "定时命令事件注册失败。",
     "server_pong.enable_failed": "服务器列表信息伪造事件注册失败。",
     "client_level_name.enable_failed": "客户端存档名称 Hook 注册失败。",
+    "client_achievements.enable_failed": "客户端成就状态 Hook 或封包监听注册失败。",
     "co_resource_pack.enable_failed": "资源包共存 Hook 注册失败。",
     "mob_block_destruction.enable_failed": "生物方块破坏事件注册失败。",
     "scheduled_command.registered": "已注册 {} 个定时命令。",

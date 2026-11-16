@@ -7,6 +7,7 @@
 #include "mod/AutoFishing.h"
 #include "mod/AutoReplenish.h"
 #include "mod/CleanUnknownBlocks.h"
+#include "mod/ClientAchievements.h"
 #include "mod/ClientLevelName.h"
 #include "mod/CoResourcePack.h"
 #include "mod/CommandPermission.h"
@@ -348,6 +349,12 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!client_achievements::enable()) {
+        disable();
+        logger.error(tr("client_achievements.enable_failed"));
+        return false;
+    }
+
     logger.info(tr("plugin.enabled"));
     return true;
 }
@@ -372,6 +379,7 @@ bool Entry::reload() {
         {server_pong::enable,           server_pong::disable,           "serverPong"         },
         {explosion_control::enable,     explosion_control::disable,     "explosionControl"   },
         {client_level_name::enable,     client_level_name::disable,     "clientLevelName"    },
+        {client_achievements::enable,   client_achievements::disable,   "clientAchievements" },
         {dropped_item_lifetime::enable, dropped_item_lifetime::disable, "droppedItemLifetime"},
         {entity_cleaner::enable,        entity_cleaner::disable,        "entityCleaner"      },
         {co_resource_pack::enable,      co_resource_pack::disable,      "coResourcePack"     },
@@ -428,6 +436,7 @@ bool Entry::reload() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    client_achievements::disable();
     auto_replenish::disable();
     vanish::disable();
     sidebar::disable();
@@ -460,6 +469,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    client_achievements::disable();
     auto_replenish::disable();
     vanish::disable();
     sidebar::disable();

@@ -89,6 +89,7 @@
     "scheduled_command.enable_failed": "Failed to register the scheduled-command event.",
     "server_pong.enable_failed": "Failed to register the server-list spoofing event.",
     "client_level_name.enable_failed": "Failed to register the client world-name hook.",
+    "client_achievements.enable_failed": "Failed to register the client achievement hooks or packet listeners.",
     "co_resource_pack.enable_failed": "Failed to register the resource-pack coexistence hooks.",
     "mob_block_destruction.enable_failed": "Failed to register the mob block-destruction events.",
     "scheduled_command.registered": "Registered {} scheduled command(s).",

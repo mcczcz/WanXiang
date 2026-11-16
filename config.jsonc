@@ -23,6 +23,8 @@
   "cleanUnknownBlocksEnable": false,
   // 向非管理员隐藏客户端显示的 OP 权限信息。
   "hideOpPermissionEnable": true,
+  // 向客户端隐藏作弊状态并允许成就判定，保留服务端实际作弊和命令设置。
+  "clientAchievementsEnable": false,
   // 侧边栏：支持 Placeholder 占位符、动态标题/行组及玩家开关持久化。
   // /sidebar on|off 切换个人显示；/sidebar reload 或 /wanxiang reload 重载万象配置。
   "sidebar": {

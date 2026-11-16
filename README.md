@@ -15,6 +15,7 @@
 | `cleanUnknownBlocksEnable` | 区块加载时清理无法识别的方块 | `false` |
 | `unloadedEntitiesCleaner` | 开服时清理未加载的实体数据（仅执行一次） | `enable=false` |
 | `hideOpPermissionEnable` | 对非管理员隐藏客户端的 OP 权限信息 | `true` |
+| `clientAchievementsEnable` | 向客户端隐藏作弊状态并允许成就判定，保留服务端作弊设置，支持重载 | `false` |
 | `droppedItemLifetime` | 修改默认及指定掉落物的存在时间 | `enable=false` |
 | `xpOrbMerge` | 合并范围内的经验球 | `enable=true` |
 | `mobEffectBlocker` | 禁止指定状态效果触发伤害/死亡附带行为 | `enable=false` |
@@ -96,6 +97,7 @@
     "vanishEnable": true,
     "cleanUnknownBlocksEnable": false,
     "hideOpPermissionEnable": true,
+    "clientAchievementsEnable": false,
     "sidebar": {
         "enable": false,
         "defaultSidebarStatus": true,
@@ -324,6 +326,16 @@
 - **未知方块清理（`cleanUnknownBlocksEnable`）**：区块加载时，将被游戏标记为“无法识别状态”的方块替换为空气，并在日志中记录清理数量。该操作不可恢复，建议先备份世界。
 - **未加载实体清理（`unloadedEntitiesCleaner`）**：默认关闭。启用后在服务端启动完成时扫描世界数据库中的实体记录并清理，每次进程启动只执行一次。`entityTypeNamesToClean=[]` 表示删除全部未加载实体，非空数组可限制清理的实体类型（例如 `minecraft:item`）；该操作不可恢复，建议先备份世界。
 - **隐藏 OP 权限（`hideOpPermissionEnable`）**：向非 OP 客户端发送能力数据包时，将玩家权限伪装为普通成员；OP 玩家收到原始权限数据。它只隐藏客户端显示，不会真正改变服务端权限。
+
+### 客户端成就：`clientAchievementsEnable`
+
+默认关闭。将 `config/config.jsonc` 中的 `clientAchievementsEnable` 设为 `true`，执行 `/wanxiang reload` 后让玩家重新进服即可应用。
+
+启用后，在 `StartGamePacket` 实际编码时将作弊开启、命令开启和成就禁用标记设为 `false`，同时覆盖手动编码和带序列化模式的编码入口；后续 `SetCommandsEnabledPacket` 也会发送命令关闭状态。服务端实际作弊设置、命令权限和存档保持原值。
+
+需要排查时可将 `logLevel` 设为 `4`，重载配置后重新进服；日志中出现 `Client achievements: encoding StartGame` 表示已进入入服包编码处理，并会记录修改前的三个标记。
+
+此功能只调整客户端接收的世界状态，不直接发放成就。玩家仍需登录支持成就的账号，并满足生存模式等原版成就条件；实际解锁情况需在客户端确认。关闭功能后同样需要重新进服以恢复客户端状态。
 
 ### MSPT/TPS 查询命令：`/mspt`
 
