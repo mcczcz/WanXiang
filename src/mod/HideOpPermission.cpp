@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "catalyst/event/server/SendMultiplePacketEvent.h"
@@ -109,6 +110,12 @@ bool enable() {
     listener         = eventBus.emplaceListener<Catalyst::SendPacketBeforeEvent>(onSendPacket);
     multipleListener = eventBus.emplaceListener<Catalyst::SendMultiplePacketBeforeEvent>(onSendMultiplePacket);
     if (!listener || !multipleListener) {
+        feature_diagnostics::checkEvent("hide_op_permission", "Catalyst::SendPacketBeforeEvent", listener != nullptr);
+        feature_diagnostics::checkEvent(
+            "hide_op_permission",
+            "Catalyst::SendMultiplePacketBeforeEvent",
+            multipleListener != nullptr
+        );
         if (listener) {
             eventBus.removeListener<Catalyst::SendPacketBeforeEvent>(listener);
             listener.reset();

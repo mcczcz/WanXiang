@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -114,7 +115,11 @@ bool enable() {
     }
 
     permissionOverrides = std::move(nextOverrides);
-    if (CommandRegistryRegisterCommandHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "command_permission",
+            "CommandRegistryRegisterCommandHook",
+            CommandRegistryRegisterCommandHook::hook()
+        )) {
         return false;
     }
     enabled.store(true, std::memory_order_release);

@@ -3,6 +3,7 @@
 #ifdef LL_PLAT_S
 
 #include "mod/Entry.h"
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/event/EventBus.h"
@@ -273,7 +274,11 @@ bool enable() {
 
     hasRun.store(false, std::memory_order_release);
     listener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerStartedEvent>(onServerStarted);
-    return listener != nullptr;
+    return feature_diagnostics::checkEvent(
+        "unloaded_entities_cleaner",
+        "ll::event::ServerStartedEvent",
+        listener != nullptr
+    );
 }
 
 void disable() {

@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -113,13 +114,21 @@ bool enable() {
     }
 
     if (needPacksInfo) {
-        if (ResourcePacksInfoWriteHook::hook() != 0) {
+        if (!feature_diagnostics::checkHook(
+                "co_resource_pack",
+                "ResourcePacksInfoWriteHook",
+                ResourcePacksInfoWriteHook::hook()
+            )) {
             return false;
         }
         packsInfoHooked.store(true, std::memory_order_relaxed);
     }
     if (needStartGame) {
-        if (StartGameTexturePacksHook::hook() != 0) {
+        if (!feature_diagnostics::checkHook(
+                "co_resource_pack",
+                "StartGameTexturePacksHook",
+                StartGameTexturePacksHook::hook()
+            )) {
             if (packsInfoHooked.exchange(false, std::memory_order_relaxed)) {
                 ResourcePacksInfoWriteHook::unhook();
             }

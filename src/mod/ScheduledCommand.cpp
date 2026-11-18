@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/event/EventBus.h"
@@ -123,7 +124,11 @@ bool enable() {
 
     lastCheckedSecond = 0;
     tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);
-    if (!tickListener) {
+    if (!feature_diagnostics::checkEvent(
+            "scheduled_command",
+            "ll::event::ServerLevelTickEvent",
+            tickListener != nullptr
+        )) {
         scheduledTasks.clear();
         return false;
     }

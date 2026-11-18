@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/command/Command.h"
@@ -63,8 +64,7 @@ bool enable() {
     try {
         return registerCommand();
     } catch (std::exception const& exception) {
-        logger.error("MSPT command registration failed: {}", exception.what());
-        return false;
+        return feature_diagnostics::exception("mspt_command", "feature.step.command", exception.what());
     }
 }
 

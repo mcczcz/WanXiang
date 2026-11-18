@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "catalyst/event/actor/ActorDestroyBlockEvent.h"
@@ -42,7 +43,11 @@ bool enable() {
 
     actorDestroyBlockListener =
         ll::event::EventBus::getInstance().emplaceListener<Catalyst::ActorDestroyBlockBeforeEvent>(onActorDestroyBlock);
-    if (!actorDestroyBlockListener) {
+    if (!feature_diagnostics::checkEvent(
+            "mob_block_destruction",
+            "Catalyst::ActorDestroyBlockBeforeEvent",
+            actorDestroyBlockListener != nullptr
+        )) {
         return false;
     }
 
@@ -50,7 +55,11 @@ bool enable() {
         ll::event::EventBus::getInstance().emplaceListener<Catalyst::WitherDestroyBlocksBeforeEvent>(
             onWitherDestroyBlocks
         );
-    if (!witherDestroyBlocksListener) {
+    if (!feature_diagnostics::checkEvent(
+            "mob_block_destruction",
+            "Catalyst::WitherDestroyBlocksBeforeEvent",
+            witherDestroyBlocksListener != nullptr
+        )) {
         ll::event::EventBus::getInstance().removeListener<Catalyst::ActorDestroyBlockBeforeEvent>(
             actorDestroyBlockListener
         );

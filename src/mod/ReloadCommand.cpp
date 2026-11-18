@@ -3,6 +3,7 @@
 #ifdef LL_PLAT_S
 
 #include "mod/Entry.h"
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/command/Command.h"
@@ -36,11 +37,13 @@ void executeCommand(CommandOrigin const& origin, CommandOutput& output) {
             output.success(tr("reload_command.success"));
             output.success(tr("reload_command.restart_hint"));
         } else {
-            output.error(tr("reload_command.failed"));
+            auto const& reason = Entry::getInstance().getLastReloadError();
+            output.error(reason.empty() ? tr("reload_command.failed") : tr("reload_command.failed_detail", reason));
         }
     } catch (std::exception const& exception) {
-        logger.error(tr("error.generic", exception.what()));
-        output.error(tr("reload_command.failed"));
+        auto const message = tr("reload_command.exception", exception.what());
+        logger.error(message);
+        output.error(message);
     }
 }
 
@@ -65,8 +68,7 @@ bool enable() {
         active = true;
         return true;
     } catch (std::exception const& exception) {
-        logger.error(tr("error.generic", exception.what()));
-        return false;
+        return feature_diagnostics::exception("reload_command", "feature.step.command", exception.what());
     }
 }
 

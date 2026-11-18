@@ -3,6 +3,7 @@
 #ifdef LL_PLAT_S
 
 #include "mod/EntityCleaner.h"
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/command/Command.h"
@@ -384,8 +385,7 @@ bool enable() {
     try {
         return registerCommand();
     } catch (std::exception const& exception) {
-        logger.error("Entity cleanup command registration failed: {}", exception.what());
-        return false;
+        return feature_diagnostics::exception("entity_cleaner_command", "feature.step.command", exception.what());
     }
 }
 

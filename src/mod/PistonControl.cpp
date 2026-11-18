@@ -23,6 +23,7 @@
 #include "mc/world/level/block/components/MovementType.h"
 #include "mc/world/level/block/components/StickyType.h"
 #include "mc/world/phys/AABB.h"
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 #include "mod/PistonCollisionBlockSource.h"
 #include <atomic>
@@ -308,32 +309,44 @@ bool enable() {
         return true;
     }
     rebuildPistonImmuneCache();
-    if (PistonIgnoreEntityHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook("piston_control", "PistonIgnoreEntityHook", PistonIgnoreEntityHook::hook())) {
         return false;
     }
-    if (PistonPassThroughHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook("piston_control", "PistonPassThroughHook", PistonPassThroughHook::hook())) {
         PistonIgnoreEntityHook::unhook();
         return false;
     }
-    if (PistonPushOutOfBlocksHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "piston_control",
+            "PistonPushOutOfBlocksHook",
+            PistonPushOutOfBlocksHook::hook()
+        )) {
         PistonPassThroughHook::unhook();
         PistonIgnoreEntityHook::unhook();
         return false;
     }
-    if (PistonDepenetrationHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook("piston_control", "PistonDepenetrationHook", PistonDepenetrationHook::hook())) {
         PistonPushOutOfBlocksHook::unhook();
         PistonPassThroughHook::unhook();
         PistonIgnoreEntityHook::unhook();
         return false;
     }
-    if (MovingBlockNoCollisionHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "piston_control",
+            "MovingBlockNoCollisionHook",
+            MovingBlockNoCollisionHook::hook()
+        )) {
         PistonDepenetrationHook::unhook();
         PistonPushOutOfBlocksHook::unhook();
         PistonPassThroughHook::unhook();
         PistonIgnoreEntityHook::unhook();
         return false;
     }
-    if (PistonArmNoCollisionShapeHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "piston_control",
+            "PistonArmNoCollisionShapeHook",
+            PistonArmNoCollisionShapeHook::hook()
+        )) {
         MovingBlockNoCollisionHook::unhook();
         PistonDepenetrationHook::unhook();
         PistonPushOutOfBlocksHook::unhook();
@@ -341,7 +354,11 @@ bool enable() {
         PistonIgnoreEntityHook::unhook();
         return false;
     }
-    if (PistonArmNoAddCollisionHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "piston_control",
+            "PistonArmNoAddCollisionHook",
+            PistonArmNoAddCollisionHook::hook()
+        )) {
         PistonArmNoCollisionShapeHook::unhook();
         MovingBlockNoCollisionHook::unhook();
         PistonDepenetrationHook::unhook();

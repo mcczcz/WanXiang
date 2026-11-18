@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "catalyst/event/server/SendMultiplePacketEvent.h"
@@ -113,10 +114,14 @@ bool enable() {
     if (!config.clientAchievementsEnable || enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (StartGameWriteHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook("client_achievements", "StartGameWriteHook", StartGameWriteHook::hook())) {
         return false;
     }
-    if (StartGameSerializationHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "client_achievements",
+            "StartGameSerializationHook",
+            StartGameSerializationHook::hook()
+        )) {
         StartGameWriteHook::unhook();
         return false;
     }
@@ -126,6 +131,12 @@ bool enable() {
     listener         = eventBus.emplaceListener<Catalyst::SendPacketBeforeEvent>(onSendPacket);
     multipleListener = eventBus.emplaceListener<Catalyst::SendMultiplePacketBeforeEvent>(onSendMultiplePacket);
     if (!listener || !multipleListener) {
+        feature_diagnostics::checkEvent("client_achievements", "Catalyst::SendPacketBeforeEvent", listener != nullptr);
+        feature_diagnostics::checkEvent(
+            "client_achievements",
+            "Catalyst::SendMultiplePacketBeforeEvent",
+            multipleListener != nullptr
+        );
         disable();
         return false;
     }

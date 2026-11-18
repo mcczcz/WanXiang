@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -101,7 +102,11 @@ bool enable() {
     if (enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (CleanerUnknownBlockHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "clean_unknown_blocks",
+            "CleanerUnknownBlockHook",
+            CleanerUnknownBlockHook::hook()
+        )) {
         return false;
     }
     enabled.store(true, std::memory_order_relaxed);

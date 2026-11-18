@@ -3,6 +3,7 @@
 #ifdef LL_PLAT_S
 
 #include "mod/Entry.h"
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 #include "sidebar/DatabaseManager.h"
 #include "sidebar/SidebarManager.h"
@@ -77,11 +78,15 @@ void registerCommands() {
                     output.success(tr("reload_command.success"));
                     output.success(tr("reload_command.restart_hint"));
                 } else {
-                    output.error(tr("reload_command.failed"));
+                    auto const& reason = Entry::getInstance().getLastReloadError();
+                    output.error(
+                        reason.empty() ? tr("reload_command.failed") : tr("reload_command.failed_detail", reason)
+                    );
                 }
             } catch (std::exception const& exception) {
-                logger.error(tr("error.generic", exception.what()));
-                output.error(tr("reload_command.failed"));
+                auto const message = tr("reload_command.exception", exception.what());
+                logger.error(message);
+                output.error(message);
             }
         }
     );
@@ -91,6 +96,7 @@ void registerCommands() {
 } // namespace
 
 bool enable() {
+    char const* step = "feature.step.command";
     try {
         registerCommands();
         commandActive = true;
@@ -98,19 +104,21 @@ bool enable() {
             return true;
         }
         auto const dataDir = Entry::getInstance().getSelf().getDataDir();
+        step               = "feature.step.directory";
         std::filesystem::create_directories(dataDir);
+        step           = "feature.step.database";
         auto& database = DatabaseManager::getInstance();
         if (!database.openDatabase((dataDir / "sidebar.db").string()) || !database.createTable()) {
             disable();
             return false;
         }
+        step = "feature.step.sidebar";
         SidebarManager::getInstance().start();
         running = true;
         return true;
     } catch (std::exception const& exception) {
         disable();
-        logger.error(tr("error.generic", exception.what()));
-        return false;
+        return feature_diagnostics::exception("sidebar", step, exception.what());
     }
 }
 

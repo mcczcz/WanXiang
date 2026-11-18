@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/event/EventBus.h"
@@ -664,7 +665,11 @@ bool enable() {
 
     active       = true;
     tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);
-    if (!tickListener) {
+    if (!feature_diagnostics::checkEvent(
+            "entity_cleaner",
+            "ll::event::ServerLevelTickEvent",
+            tickListener != nullptr
+        )) {
         resetState();
         return false;
     }

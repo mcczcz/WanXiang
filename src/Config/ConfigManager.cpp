@@ -3,7 +3,9 @@
 #include "ConfigTextPatch.h"
 #include "I18n/I18n.h"
 #include "mod/Entry.h"
+#include "mod/FeatureDiagnostics.h"
 
+#include <cerrno>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -104,8 +106,8 @@ bool ConfigManager::load(const std::string& path, bool createIfMissing) {
     std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
         if (!createIfMissing) {
-            modLogger.error(tr("config.reload_read_error", path));
-            return false;
+            auto const reason = std::error_code(errno, std::generic_category()).message();
+            return feature_diagnostics::fail(tr("config.read_error_detail", path, reason));
         }
         // 文件不存在，创建默认配置
         modLogger.info(tr("config.not_found", path));
@@ -121,13 +123,11 @@ bool ConfigManager::load(const std::string& path, bool createIfMissing) {
         // 解析用户配置，允许注释
         userJson = nlohmann::json::parse(content, nullptr, true, true);
     } catch (const nlohmann::json::exception& e) {
-        modLogger.error(tr("config.parse_error", e.what()));
-        return false;
+        return feature_diagnostics::fail(tr("config.parse_error_detail", path, e.what()));
     }
 
     if (!userJson.is_object()) {
-        modLogger.error(tr("config.not_an_object"));
-        return false;
+        return feature_diagnostics::fail(tr("config.structure_error_detail", path, userJson.type_name()));
     }
 
     // 填充内存中的配置对象。缺失或类型不符的键会回退到结构体定义里的默认值。
@@ -168,14 +168,11 @@ bool ConfigManager::load(const std::string& path, bool createIfMissing) {
 }
 
 bool ConfigManager::save() {
-    auto& modLogger = Entry::getInstance().getSelf().getLogger();
-
     std::string serialized;
     try {
         serialized = nlohmann::json(*mConfig).dump(4);
     } catch (const nlohmann::json::exception& e) {
-        modLogger.error(tr("config.save_error", e.what()));
-        return false;
+        return feature_diagnostics::fail(tr("config.save_error", e.what()));
     }
 
     const std::filesystem::path target(mConfigPath);
@@ -185,8 +182,7 @@ bool ConfigManager::save() {
     }
 
     if (!config_text::writeFileAtomically(target, serialized)) {
-        modLogger.error(tr("config.save_io_error", mConfigPath));
-        return false;
+        return feature_diagnostics::fail(tr("config.save_io_error", mConfigPath));
     }
     return true;
 }

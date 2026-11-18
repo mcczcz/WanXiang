@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/event/EventBus.h"
@@ -237,7 +238,7 @@ bool enable() {
 
     elapsedTicks = 0;
     tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);
-    return tickListener != nullptr;
+    return feature_diagnostics::checkEvent("xp_orb_merge", "ll::event::ServerLevelTickEvent", tickListener != nullptr);
 }
 
 void disable() {

@@ -2,6 +2,8 @@
 
 #include "ll/api/mod/NativeMod.h"
 
+#include <string>
+
 namespace my_mod {
 
 class Entry {
@@ -19,12 +21,15 @@ public:
 
     bool reload();
 
+    [[nodiscard]] std::string const& getLastReloadError() const { return mLastReloadError; }
+
     bool disable();
 
     bool unload();
 
 private:
     ll::mod::NativeMod& mSelf;
+    std::string         mLastReloadError;
 };
 
 } // namespace my_mod

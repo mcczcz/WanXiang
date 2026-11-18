@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/coro/Executor.h"
@@ -219,10 +220,14 @@ bool enable() {
         return true;
     }
 
-    if (LeavesBlockOnRemoveHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "fast_leaf_decay",
+            "LeavesBlockOnRemoveHook",
+            LeavesBlockOnRemoveHook::hook()
+        )) {
         return false;
     }
-    if (LogBlockOnRemoveHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook("fast_leaf_decay", "LogBlockOnRemoveHook", LogBlockOnRemoveHook::hook())) {
         LeavesBlockOnRemoveHook::unhook();
         return false;
     }

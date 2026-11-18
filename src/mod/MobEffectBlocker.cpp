@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -90,19 +91,31 @@ bool enable() {
     if (!config.mobEffectBlocker.enable || enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (WeavingOnActorDiedHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "mob_effect_blocker",
+            "WeavingOnActorDiedHook",
+            WeavingOnActorDiedHook::hook()
+        )) {
         return false;
     }
-    if (OozingOnActorDiedHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook("mob_effect_blocker", "OozingOnActorDiedHook", OozingOnActorDiedHook::hook())) {
         WeavingOnActorDiedHook::unhook();
         return false;
     }
-    if (WindChargedOnActorDiedHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "mob_effect_blocker",
+            "WindChargedOnActorDiedHook",
+            WindChargedOnActorDiedHook::hook()
+        )) {
         OozingOnActorDiedHook::unhook();
         WeavingOnActorDiedHook::unhook();
         return false;
     }
-    if (InfestedOnActorHurtHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "mob_effect_blocker",
+            "InfestedOnActorHurtHook",
+            InfestedOnActorHurtHook::hook()
+        )) {
         WindChargedOnActorDiedHook::unhook();
         OozingOnActorDiedHook::unhook();
         WeavingOnActorDiedHook::unhook();

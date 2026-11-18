@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "catalyst/event/world/ExplosionEvent.h"
@@ -96,7 +97,7 @@ bool enable() {
     }
 
     listener = ll::event::EventBus::getInstance().emplaceListener<Catalyst::ExplosionBeforeEvent>(onExplosion);
-    return listener != nullptr;
+    return feature_diagnostics::checkEvent("explosion_control", "Catalyst::ExplosionBeforeEvent", listener != nullptr);
 }
 
 void disable() {

@@ -1,6 +1,7 @@
 #include "DatabaseManager.h"
 
 #ifdef LL_PLAT_S
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 #include "sqlite3.h"
 
@@ -19,7 +20,7 @@ bool DatabaseManager::openDatabase(const std::string& dbPath) {
     dbFilePath = dbPath;
     int rc = sqlite3_open(dbFilePath.c_str(), &db);
     if (rc) {
-        logger.error("无法打开侧边栏数据库: {}", sqlite3_errmsg(db));
+        feature_diagnostics::fail(tr("sidebar.database_failed", dbFilePath, "sqlite3_open", rc, sqlite3_errmsg(db)));
         closeDatabase();
         return false;
     }
@@ -45,7 +46,9 @@ bool DatabaseManager::createTable() {
 
     int rc = sqlite3_exec(db, sql, nullptr, nullptr, &errMsg);
     if (rc != SQLITE_OK) {
-        logger.error("创建表失败: {}", errMsg);
+        feature_diagnostics::fail(
+            tr("sidebar.database_failed", dbFilePath, "CREATE TABLE player_sidebar_status", rc, errMsg)
+        );
         sqlite3_free(errMsg);
         return false;
     }

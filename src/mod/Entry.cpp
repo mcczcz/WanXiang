@@ -1,4 +1,5 @@
 #include "mod/Entry.h"
+#include "mod/FeatureDiagnostics.h"
 
 #include "Config/ConfigManager.h"
 #include "I18n/I18n.h"
@@ -69,14 +70,12 @@ bool Entry::load() {
     // 根据配置更新语言
     I18n::getInstance().setLanguage(config.language);
 
-    if (!command_permission::enable()) {
-        logger.error(tr("command_permission.enable_failed"));
+    if (!feature_diagnostics::enable("command_permission", command_permission::enable)) {
         return false;
     }
 
-    if (!ability_command::enable()) {
+    if (!feature_diagnostics::enable("ability_command", ability_command::enable)) {
         command_permission::disable();
-        logger.error(tr("ability_command.enable_failed"));
         return false;
     }
     logger.info(tr("plugin.loaded"));
@@ -86,56 +85,49 @@ bool Entry::load() {
 bool Entry::enable() {
     getSelf().getLogger().debug("Enabling...");
 
-    if (!trusted_skin::enable()) {
-        logger.error(tr("trusted_skin.enable_failed"));
+    if (!feature_diagnostics::enable("trusted_skin", trusted_skin::enable)) {
         return false;
     }
-    if (!auto_fishing::enable()) {
+    if (!feature_diagnostics::enable("auto_fishing", auto_fishing::enable)) {
         trusted_skin::disable();
-        logger.error(tr("auto_fishing.enable_failed"));
         return false;
     }
-    if (!xp_orb_merge::enable()) {
+    if (!feature_diagnostics::enable("xp_orb_merge", xp_orb_merge::enable)) {
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("xp_orb_merge.enable_failed"));
         return false;
     }
-    if (!mob_effect_blocker::enable()) {
+    if (!feature_diagnostics::enable("mob_effect_blocker", mob_effect_blocker::enable)) {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("mob_effect_blocker.enable_failed"));
         return false;
     }
-    if (!fast_leaf_decay::enable()) {
+    if (!feature_diagnostics::enable("fast_leaf_decay", fast_leaf_decay::enable)) {
         mob_effect_blocker::disable();
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("fast_leaf_decay.enable_failed"));
         return false;
     }
-    if (!clean_unknown_blocks::enable()) {
+    if (!feature_diagnostics::enable("clean_unknown_blocks", clean_unknown_blocks::enable)) {
         fast_leaf_decay::disable();
         mob_effect_blocker::disable();
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("clean_unknown_blocks.enable_failed"));
         return false;
     }
-    if (!unloaded_entities_cleaner::enable()) {
+    if (!feature_diagnostics::enable("unloaded_entities_cleaner", unloaded_entities_cleaner::enable)) {
         clean_unknown_blocks::disable();
         fast_leaf_decay::disable();
         mob_effect_blocker::disable();
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("unloaded_entities_cleaner.enable_failed"));
         return false;
     }
-    if (!hide_op_permission::enable()) {
+    if (!feature_diagnostics::enable("hide_op_permission", hide_op_permission::enable)) {
         unloaded_entities_cleaner::disable();
         clean_unknown_blocks::disable();
         fast_leaf_decay::disable();
@@ -143,10 +135,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("hide_op_permission.enable_failed"));
         return false;
     }
-    if (!scheduled_command::enable()) {
+    if (!feature_diagnostics::enable("scheduled_command", scheduled_command::enable)) {
         unloaded_entities_cleaner::disable();
         hide_op_permission::disable();
         clean_unknown_blocks::disable();
@@ -155,10 +146,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("scheduled_command.enable_failed"));
         return false;
     }
-    if (!server_pong::enable()) {
+    if (!feature_diagnostics::enable("server_pong", server_pong::enable)) {
         unloaded_entities_cleaner::disable();
         scheduled_command::disable();
         hide_op_permission::disable();
@@ -168,10 +158,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("server_pong.enable_failed"));
         return false;
     }
-    if (!explosion_control::enable()) {
+    if (!feature_diagnostics::enable("explosion_control", explosion_control::enable)) {
         unloaded_entities_cleaner::disable();
         server_pong::disable();
         scheduled_command::disable();
@@ -182,10 +171,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error("Failed to enable explosion control");
         return false;
     }
-    if (!client_level_name::enable()) {
+    if (!feature_diagnostics::enable("client_level_name", client_level_name::enable)) {
         unloaded_entities_cleaner::disable();
         explosion_control::disable();
         server_pong::disable();
@@ -197,10 +185,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("client_level_name.enable_failed"));
         return false;
     }
-    if (!dropped_item_lifetime::enable()) {
+    if (!feature_diagnostics::enable("dropped_item_lifetime", dropped_item_lifetime::enable)) {
         unloaded_entities_cleaner::disable();
         client_level_name::disable();
         explosion_control::disable();
@@ -213,10 +200,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("dropped_item_lifetime.enable_failed"));
         return false;
     }
-    if (!entity_cleaner::enable()) {
+    if (!feature_diagnostics::enable("entity_cleaner", entity_cleaner::enable)) {
         dropped_item_lifetime::disable();
         unloaded_entities_cleaner::disable();
         client_level_name::disable();
@@ -230,10 +216,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("entity_cleaner.enable_failed"));
         return false;
     }
-    if (!entity_cleaner_command::enable()) {
+    if (!feature_diagnostics::enable("entity_cleaner_command", entity_cleaner_command::enable)) {
         entity_cleaner::disable();
         dropped_item_lifetime::disable();
         unloaded_entities_cleaner::disable();
@@ -248,10 +233,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("entity_cleaner_command.enable_failed"));
         return false;
     }
-    if (!mspt_command::enable()) {
+    if (!feature_diagnostics::enable("mspt_command", mspt_command::enable)) {
         entity_cleaner_command::disable();
         entity_cleaner::disable();
         dropped_item_lifetime::disable();
@@ -267,10 +251,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("mspt_command.enable_failed"));
         return false;
     }
-    if (!co_resource_pack::enable()) {
+    if (!feature_diagnostics::enable("co_resource_pack", co_resource_pack::enable)) {
         mspt_command::disable();
         entity_cleaner_command::disable();
         entity_cleaner::disable();
@@ -287,10 +270,9 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("co_resource_pack.enable_failed"));
         return false;
     }
-    if (!mob_block_destruction::enable()) {
+    if (!feature_diagnostics::enable("mob_block_destruction", mob_block_destruction::enable)) {
         co_resource_pack::disable();
         mspt_command::disable();
         entity_cleaner_command::disable();
@@ -308,50 +290,42 @@ bool Entry::enable() {
         xp_orb_merge::disable();
         auto_fishing::disable();
         trusted_skin::disable();
-        logger.error(tr("mob_block_destruction.enable_failed"));
         return false;
     }
 
-    if (!piston_control::enable()) {
+    if (!feature_diagnostics::enable("piston_control", piston_control::enable)) {
         disable();
-        logger.error(tr("piston_control.enable_failed"));
         return false;
     }
     piston_control::applyBlockConfig();
 
-    if (!custom_knockback::enable()) {
+    if (!feature_diagnostics::enable("custom_knockback", custom_knockback::enable)) {
         disable();
-        logger.error(tr("custom_knockback.enable_failed"));
         return false;
     }
 
-    if (!sidebar::enable()) {
+    if (!feature_diagnostics::enable("sidebar", sidebar::enable)) {
         disable();
-        logger.error(tr("sidebar.enable_failed"));
         return false;
     }
 
-    if (!reload_command::enable()) {
+    if (!feature_diagnostics::enable("reload_command", reload_command::enable)) {
         disable();
-        logger.error(tr("reload_command.enable_failed"));
         return false;
     }
 
-    if (!vanish::enable()) {
+    if (!feature_diagnostics::enable("vanish", vanish::enable)) {
         disable();
-        logger.error(tr("vanish.enable_failed"));
         return false;
     }
 
-    if (!auto_replenish::enable()) {
+    if (!feature_diagnostics::enable("auto_replenish", auto_replenish::enable)) {
         disable();
-        logger.error(tr("auto_replenish.enable_failed"));
         return false;
     }
 
-    if (!client_achievements::enable()) {
+    if (!feature_diagnostics::enable("client_achievements", client_achievements::enable)) {
         disable();
-        logger.error(tr("client_achievements.enable_failed"));
         return false;
     }
 
@@ -360,6 +334,8 @@ bool Entry::enable() {
 }
 
 bool Entry::reload() {
+    mLastReloadError.clear();
+    feature_diagnostics::lastError.clear();
     struct Feature {
         bool (*enable)();
         void (*disable)();
@@ -367,27 +343,27 @@ bool Entry::reload() {
     };
     // Command registration, startup database cleanup and piston block rules require a server restart.
     static constexpr Feature features[] = {
-        {trusted_skin::enable,          trusted_skin::disable,          "trustedSkin"        },
-        {auto_fishing::enable,          auto_fishing::disable,          "autoFishing"        },
-        {auto_replenish::enable,        auto_replenish::disable,        "autoReplenish"      },
-        {xp_orb_merge::enable,          xp_orb_merge::disable,          "xpOrbMerge"         },
-        {mob_effect_blocker::enable,    mob_effect_blocker::disable,    "mobEffectBlocker"   },
-        {fast_leaf_decay::enable,       fast_leaf_decay::disable,       "fastLeafDecay"      },
-        {clean_unknown_blocks::enable,  clean_unknown_blocks::disable,  "cleanUnknownBlocks" },
-        {hide_op_permission::enable,    hide_op_permission::disable,    "hideOpPermission"   },
-        {scheduled_command::enable,     scheduled_command::disable,     "scheduledCommands"  },
-        {server_pong::enable,           server_pong::disable,           "serverPong"         },
-        {explosion_control::enable,     explosion_control::disable,     "explosionControl"   },
-        {client_level_name::enable,     client_level_name::disable,     "clientLevelName"    },
-        {client_achievements::enable,   client_achievements::disable,   "clientAchievements" },
-        {dropped_item_lifetime::enable, dropped_item_lifetime::disable, "droppedItemLifetime"},
-        {entity_cleaner::enable,        entity_cleaner::disable,        "entityCleaner"      },
-        {co_resource_pack::enable,      co_resource_pack::disable,      "coResourcePack"     },
-        {mob_block_destruction::enable, mob_block_destruction::disable, "mobBlockDestruction"},
-        {piston_control::enable,        piston_control::disable,        "pistonControl"      },
-        {custom_knockback::enable,      custom_knockback::disable,      "customKnockback"    },
-        {sidebar::enable,               sidebar::disable,               "sidebar"            },
-        {vanish::enable,                vanish::disable,                "vanish"             },
+        {trusted_skin::enable,          trusted_skin::disable,          "trusted_skin"         },
+        {auto_fishing::enable,          auto_fishing::disable,          "auto_fishing"         },
+        {auto_replenish::enable,        auto_replenish::disable,        "auto_replenish"       },
+        {xp_orb_merge::enable,          xp_orb_merge::disable,          "xp_orb_merge"         },
+        {mob_effect_blocker::enable,    mob_effect_blocker::disable,    "mob_effect_blocker"   },
+        {fast_leaf_decay::enable,       fast_leaf_decay::disable,       "fast_leaf_decay"      },
+        {clean_unknown_blocks::enable,  clean_unknown_blocks::disable,  "clean_unknown_blocks" },
+        {hide_op_permission::enable,    hide_op_permission::disable,    "hide_op_permission"   },
+        {scheduled_command::enable,     scheduled_command::disable,     "scheduled_command"    },
+        {server_pong::enable,           server_pong::disable,           "server_pong"          },
+        {explosion_control::enable,     explosion_control::disable,     "explosion_control"    },
+        {client_level_name::enable,     client_level_name::disable,     "client_level_name"    },
+        {client_achievements::enable,   client_achievements::disable,   "client_achievements"  },
+        {dropped_item_lifetime::enable, dropped_item_lifetime::disable, "dropped_item_lifetime"},
+        {entity_cleaner::enable,        entity_cleaner::disable,        "entity_cleaner"       },
+        {co_resource_pack::enable,      co_resource_pack::disable,      "co_resource_pack"     },
+        {mob_block_destruction::enable, mob_block_destruction::disable, "mob_block_destruction"},
+        {piston_control::enable,        piston_control::disable,        "piston_control"       },
+        {custom_knockback::enable,      custom_knockback::disable,      "custom_knockback"     },
+        {sidebar::enable,               sidebar::disable,               "sidebar"              },
+        {vanish::enable,                vanish::disable,                "vanish"               },
     };
 
     auto stopFeatures = [&] {
@@ -397,15 +373,9 @@ bool Entry::reload() {
     };
     auto startFeatures = [&] {
         for (auto const& feature : features) {
-            try {
-                if (feature.enable()) {
-                    continue;
-                }
-                logger.error(tr("reload_command.feature_failed", feature.name));
-            } catch (std::exception const& exception) {
-                logger.error(tr("reload_command.feature_exception", feature.name, exception.what()));
+            if (!feature_diagnostics::enable(feature.name, feature.enable)) {
+                return false;
             }
-            return false;
         }
         return true;
     };
@@ -413,6 +383,7 @@ bool Entry::reload() {
     Config     previousConfig   = config;
     auto const previousLanguage = I18n::getInstance().getLanguage();
     if (!ConfigManager::getInstance().reload()) {
+        mLastReloadError = feature_diagnostics::lastError;
         return false;
     }
 
@@ -423,13 +394,17 @@ bool Entry::reload() {
         return true;
     }
 
+    mLastReloadError = feature_diagnostics::lastError;
     stopFeatures();
     config = std::move(previousConfig);
     logger.setLevel(config.logLevel);
     I18n::getInstance().setLanguage(previousLanguage);
     if (!startFeatures()) {
         stopFeatures();
+        mLastReloadError += "\n" + tr("reload_command.restore_failed") + "\n" + feature_diagnostics::lastError;
         logger.error(tr("reload_command.restore_failed"));
+    } else {
+        mLastReloadError += "\n" + tr("reload_command.restored");
     }
     return false;
 }

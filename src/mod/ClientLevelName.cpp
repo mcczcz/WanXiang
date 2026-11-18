@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -48,7 +49,11 @@ bool enable() {
     if (enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (StartGamePacketWriteHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "client_level_name",
+            "StartGamePacketWriteHook",
+            StartGamePacketWriteHook::hook()
+        )) {
         return false;
     }
     enabled.store(true, std::memory_order_relaxed);

@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/event/EventBus.h"
@@ -161,16 +162,17 @@ LL_TYPE_INSTANCE_HOOK(
 #pragma clang diagnostic pop
 
 struct Hook {
+    char const* name;
     int (*install)();
     void (*remove)();
 };
 
 Hook const hooks[] = {
-    {[] { return ItemUseHook::hook(); }, [] { ItemUseHook::unhook(); }},
-    {[] { return ItemUseOnActorHook::hook(); }, [] { ItemUseOnActorHook::unhook(); }},
-    {[] { return CompleteUsingItemHook::hook(); }, [] { CompleteUsingItemHook::unhook(); }},
-    {[] { return ReleaseUsingItemHook::hook(); }, [] { ReleaseUsingItemHook::unhook(); }},
-    {[] { return ItemBreakHook::hook(); }, [] { ItemBreakHook::unhook(); }},
+    {"ItemUseHook",           [] { return ItemUseHook::hook(); },           [] { ItemUseHook::unhook(); }          },
+    {"ItemUseOnActorHook",    [] { return ItemUseOnActorHook::hook(); },    [] { ItemUseOnActorHook::unhook(); }   },
+    {"CompleteUsingItemHook", [] { return CompleteUsingItemHook::hook(); }, [] { CompleteUsingItemHook::unhook(); }},
+    {"ReleaseUsingItemHook",  [] { return ReleaseUsingItemHook::hook(); },  [] { ReleaseUsingItemHook::unhook(); } },
+    {"ItemBreakHook",         [] { return ItemBreakHook::hook(); },         [] { ItemBreakHook::unhook(); }        },
 };
 
 } // namespace
@@ -180,14 +182,18 @@ bool enable() {
         return true;
     }
     for (auto const& hook : hooks) {
-        if (hook.install() != 0) {
+        if (!feature_diagnostics::checkHook("auto_replenish", hook.name, hook.install())) {
             disable();
             return false;
         }
         ++installedHooks;
     }
     tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);
-    if (!tickListener) {
+    if (!feature_diagnostics::checkEvent(
+            "auto_replenish",
+            "ll::event::ServerLevelTickEvent",
+            tickListener != nullptr
+        )) {
         disable();
         return false;
     }

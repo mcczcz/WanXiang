@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/command/Command.h"
@@ -108,6 +109,7 @@ bool enable() {
     if (active) {
         return true;
     }
+    char const* step = "feature.step.command";
     try {
         if (!commandRegistered) {
             auto& command = ll::command::CommandRegistrar::getServerInstance().getOrCreateCommand(
@@ -123,22 +125,31 @@ bool enable() {
         if (!config.vanishEnable) {
             return true;
         }
-        if (PlayerTryCreateAddActorPacketHook::hook() != 0) {
+        step = "feature.step.hook";
+        if (!feature_diagnostics::checkHook(
+                "vanish",
+                "PlayerTryCreateAddActorPacketHook",
+                PlayerTryCreateAddActorPacketHook::hook()
+            )) {
             return false;
         }
         active             = true;
+        step               = "feature.step.event";
         disconnectListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::PlayerDisconnectEvent>(
             [](ll::event::PlayerDisconnectEvent& event) { vanishedPlayers.erase(event.self().getOrCreateUniqueID()); }
         );
-        if (!disconnectListener) {
+        if (!feature_diagnostics::checkEvent(
+                "vanish",
+                "ll::event::PlayerDisconnectEvent",
+                disconnectListener != nullptr
+            )) {
             disable();
             return false;
         }
         return true;
     } catch (std::exception const& exception) {
         disable();
-        logger.error(tr("error.generic", exception.what()));
-        return false;
+        return feature_diagnostics::exception("vanish", step, exception.what());
     }
 }
 

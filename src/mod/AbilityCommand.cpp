@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -52,7 +53,11 @@ bool enable() {
         return true;
     }
 
-    if (VanillaGameModuleServerSetupCommandsHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "ability_command",
+            "VanillaGameModuleServerSetupCommandsHook",
+            VanillaGameModuleServerSetupCommandsHook::hook()
+        )) {
         return false;
     }
     enabled.store(true, std::memory_order_relaxed);

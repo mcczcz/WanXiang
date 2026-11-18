@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "catalyst/event/server/ServerPongEvent.h"
@@ -36,7 +37,7 @@ bool enable() {
     }
 
     listener = ll::event::EventBus::getInstance().emplaceListener<Catalyst::ServerPongBeforeEvent>(onServerPong);
-    return listener != nullptr;
+    return feature_diagnostics::checkEvent("server_pong", "Catalyst::ServerPongBeforeEvent", listener != nullptr);
 }
 
 void disable() {

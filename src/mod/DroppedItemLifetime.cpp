@@ -2,6 +2,7 @@
 
 #ifdef LL_PLAT_S
 
+#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/memory/Hook.h"
@@ -75,7 +76,11 @@ bool enable() {
     if (!config.droppedItemLifetime.enable || enabled.load(std::memory_order_relaxed)) {
         return true;
     }
-    if (BedrockSpawnerSpawnItemHook::hook() != 0) {
+    if (!feature_diagnostics::checkHook(
+            "dropped_item_lifetime",
+            "BedrockSpawnerSpawnItemHook",
+            BedrockSpawnerSpawnItemHook::hook()
+        )) {
         return false;
     }
     enabled.store(true, std::memory_order_relaxed);
