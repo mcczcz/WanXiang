@@ -144,7 +144,10 @@
 "droppedItemLifetime": {
     "enable": true,
     "defaultSeconds": 120,                           // 存活时间 (s)
-    "items": { "minecraft:diamond": 600 }           // 特定物品存活时间
+    "items": {
+        "minecraft:diamond_sword": 600,             // 精确 ID 优先，钻石剑保留 600 秒
+        "/minecraft:.*_sword/": 180                 // 其余匹配此正则的剑保留 180 秒
+    }                                               // 正则匹配完整 ID，多条命中时按键名字典序取第一条
 },
 "xpOrbMerge": {
     "enable": true,

@@ -113,6 +113,7 @@
     "mob_effect_blocker.enable_failed": "Failed to register the mob-effect blocker hook.",
     "xp_orb_merge.enable_failed": "Failed to register the XP orb merge event.",
     "dropped_item_lifetime.enable_failed": "Failed to register the dropped-item lifetime hook.",
+    "dropped_item_lifetime.invalid_regex": "Skipping invalid regular expression {} in droppedItemLifetime.items: {}",
     "fast_leaf_decay.enable_failed": "Failed to register the fast leaf decay hook.",
     "clean_unknown_blocks.enable_failed": "Failed to register the unknown-block cleanup hook.",
     "clean_unknown_blocks.cleaned": "Cleaned {} unknown block(s) in chunk ({}, {}).",

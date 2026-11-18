@@ -14,6 +14,9 @@
 #include <atomic>
 #include <cstdint>
 #include <limits>
+#include <map>
+#include <regex>
+#include <string>
 
 namespace my_mod::dropped_item_lifetime {
 namespace {
@@ -22,14 +25,41 @@ constexpr std::int64_t TicksPerSecond = 20;
 
 std::atomic_bool enabled{false};
 
+struct RegexRule {
+    std::regex pattern;
+    int        seconds;
+};
+
+std::map<std::string, RegexRule> regexRules;
+
+void loadRegexRules() {
+    regexRules.clear();
+    for (auto const& [key, seconds] : config.droppedItemLifetime.items) {
+        if (key.size() < 2 || key.front() != '/' || key.back() != '/') {
+            continue;
+        }
+        try {
+            regexRules.emplace(key, RegexRule{std::regex(key.begin() + 1, key.end() - 1), seconds});
+        } catch (std::regex_error const& error) {
+            logger.warn(tr("dropped_item_lifetime.invalid_regex", key, error.what()));
+        }
+    }
+}
+
 int getLifetimeSeconds(ItemStack const& item) {
     auto const& lifetimeConfig = config.droppedItemLifetime;
     if (lifetimeConfig.items.empty()) {
         return lifetimeConfig.defaultSeconds;
     }
-    auto const override = lifetimeConfig.items.find(item.getTypeName());
+    auto const& typeName = item.getTypeName();
+    auto const  override = lifetimeConfig.items.find(typeName);
     if (override != lifetimeConfig.items.end()) {
         return override->second;
+    }
+    for (auto const& [key, rule] : regexRules) {
+        if (std::regex_match(typeName, rule.pattern)) {
+            return rule.seconds;
+        }
     }
     return lifetimeConfig.defaultSeconds;
 }
@@ -76,6 +106,7 @@ bool enable() {
     if (!config.droppedItemLifetime.enable || enabled.load(std::memory_order_relaxed)) {
         return true;
     }
+    loadRegexRules();
     if (!feature_diagnostics::checkHook(
             "dropped_item_lifetime",
             "BedrockSpawnerSpawnItemHook",

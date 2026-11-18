@@ -113,6 +113,7 @@
     "mob_effect_blocker.enable_failed": "状态效果禁用 Hook 注册失败。",
     "xp_orb_merge.enable_failed": "经验球合并事件注册失败。",
     "dropped_item_lifetime.enable_failed": "掉落物存在时间 Hook 注册失败。",
+    "dropped_item_lifetime.invalid_regex": "已跳过 droppedItemLifetime.items 中的无效正则表达式 {}。原因：{}",
     "fast_leaf_decay.enable_failed": "树叶快速腐烂 Hook 注册失败。",
     "clean_unknown_blocks.enable_failed": "未知方块清理 Hook 注册失败。",
     "clean_unknown_blocks.cleaned": "已清理 {} 个未知方块（区块：{}, {}）。",

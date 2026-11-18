@@ -47,7 +47,8 @@
   "droppedItemLifetime": {
     "enable": false,
     "defaultSeconds": 300,
-    "items": {} // 格式: { "minecraft:diamond": 600 }
+    // 精确 ID 优先。/正则表达式/ 匹配完整物品 ID，多条正则命中时按键名字典序取第一条。
+    "items": {} // 示例: { "minecraft:diamond_sword": 600, "/minecraft:.*_sword/": 180 }
   },
   // 合并范围内经验球。
   "xpOrbMerge": {
