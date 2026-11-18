@@ -1,53 +1,37 @@
 {
   // 原版生存服默认配置：保留原版玩法，开启经验球合并和保守的超量清理。
-  // 配置格式版本。通常不要手动修改；缺少字段会在启动时自动补回。
   "version": 24,
-  // 日志等级：-1=关闭，0=Fatal，1=Error，2=Warn，3=Info，4=Debug，5=Trace。
+  // 日志等级：-1=Off, 0=Fatal, 1=Error, 2=Warn, 3=Info, 4=Debug, 5=Trace。
   "logLevel": 3,
-  // 翻译文件名，不含 .json。随包提供 zh_CN 和 en_US。
+  // 语言代码 (如 zh_CN, en_US)。
   "language": "zh_CN",
-  // 将玩家皮肤标记为可信任皮肤。
   "trustedSkinEnable": true,
-  // 钓鱼成功后自动收杆并重新抛竿。
   "autoFishingEnable": false,
-  // 主手物品耗尽或工具损坏后，从背包及其他快捷栏补充同类型物品。
   "autoReplenishEnable": true,
-  // 注册原版 /ability 命令。
   "abilityCommandEnable": true,
-  // 注册 /mspt 命令，供玩家查看当前 MSPT 和 TPS。
   "msptCommandEnable": true,
-  // 启用 /vanish 隐身功能，仅 OP 可用。修改后执行 /wanxiang reload 生效。
-  // 重载会结束当前玩家的隐身状态；关闭后命令保留，但无法使用。
+  // 启用 /vanish 隐身 (仅 OP)。修改后 /wanxiang reload 生效。
   "vanishEnable": true,
-  // 区块加载时清理无法识别的方块。操作不可恢复。
   "cleanUnknownBlocksEnable": false,
-  // 向非管理员隐藏客户端显示的 OP 权限信息。
   "hideOpPermissionEnable": true,
-  // 向客户端隐藏作弊状态并允许成就判定，保留服务端实际作弊和命令设置。
   "clientAchievementsEnable": false,
-  // 侧边栏：支持 Placeholder 占位符、动态标题/行组及玩家开关持久化。
-  // /sidebar on|off 切换个人显示；/sidebar reload 或 /wanxiang reload 重载万象配置。
+  // 侧边栏：/sidebar on|off 切换，/wanxiang reload 重载。支持 Placeholder 占位符。
   "sidebar": {
     "enable": false,
-    // 没有保存过开关的新玩家默认显示侧边栏。
-    "defaultSidebarStatus": true,
-    // 刷新间隔，单位毫秒；最小为 50。
-    "updateInterval": 1000,
-    // 标题跟随当前行组索引循环选取。
+    "defaultSidebarStatus": true, // 新玩家默认开启
+    "updateInterval": 1000, // 刷新间隔 (ms)，最小 50ms
     "dynamicTitles": [
       "§b万象"
-    ],
+    ], // 标题组 (支持 Placeholder)
     "dynamicLines": [
       [
         "§f欢迎来到服务器"
       ]
-    ],
+    ], // 行组 (支持 Placeholder)
     "currentLineGroupIndex": 0,
-    "lineGroupSwitchInterval": 5000
+    "lineGroupSwitchInterval": 5000 // 轮播间隔 (ms)
   },
-  // 自定义玩家攻击造成的击退；player 为受击玩家，mob 为其他受击生物。
-  // 水平、垂直倍率：1=原版，0=不改变对应方向的速度，2=两倍速度变化；不接受负数。
-  // 修改后执行 /wanxiang reload 生效。
+  // 自定义击退倍率 (1.0 为原版，0 为不改变速度，2 为两倍速度变化)。需重载。
   "customKnockback": {
     "enable": false,
     "player": {
@@ -59,25 +43,19 @@
       "vertical": 1.0
     }
   },
-  // 修改掉落物存在时间。只影响启用后新生成的掉落物。
+  // 掉落物存活时间 (秒)。只影响新生成的掉落物。
   "droppedItemLifetime": {
     "enable": false,
-    // 未单独列出的物品使用此时间，单位为秒。
     "defaultSeconds": 300,
-    // 按完整物品标识覆盖时间，例如 minecraft:diamond。
-    "items": {
-      // "minecraft:diamond": 600,
-      // "minecraft:nether_star": 1800
-    }
+    "items": {} // 格式: { "minecraft:diamond": 600 }
   },
-  // 合并同一维度内指定半径范围的经验球。
+  // 合并范围内经验球。
   "xpOrbMerge": {
     "enable": true,
-    "radius": 8.0,
-    // 检查间隔，单位为游戏刻；20 刻约等于 1 秒。
-    "intervalTicks": 20
+    "radius": 8.0, // 合并半径
+    "intervalTicks": 20 // 检测间隔 (20 tick ≈ 1s)
   },
-  // 阻止状态效果触发的附带行为。
+  // 阻止特定状态效果触发的附带行为 (受伤/死亡)。
   "mobEffectBlocker": {
     "enable": false,
     "weaving": true,
@@ -85,15 +63,13 @@
     "oozing": true,
     "windCharged": false
   },
-  // 原木或树叶被破坏后，加速清理无支撑的非持久树叶。
+  // 加速无支撑树叶腐烂。
   "fastLeafDecay": {
     "enable": false,
-    // 每片树叶随机延迟检查的最小/最大游戏刻。
     "minDelayTicks": 2,
     "maxDelayTicks": 8
   },
-  // 服务器启动时清理世界数据库中的未加载实体记录，仅执行一次。
-  // entityTypeNamesToClean 为空表示清理全部未加载实体，操作不可恢复。
+  // 开服时清理一次未加载实体。慎用 (不可恢复)。
   "unloadedEntitiesCleaner": {
     "enable": false,
     "entityTypeNamesToClean": [],
@@ -102,19 +78,17 @@
     "writeCleanupResultToTextLog": false,
     "cleanupResultTextLogFile": "cleanup-result.log"
   },
-  // 按 Cron 表达式执行服务端命令。Cron 为 6 段：秒 分 时 月内日期 月 星期。
+  // 定时命令。6 段 Cron：秒 分 时 日 月 星期。
   "scheduledCommands": {
     "enable": false,
-    // 任务中的 command 不要带开头的 /；命令以服务端 Owner 权限执行。
-    "tasks": []
+    "tasks": [] // 例: { "cron": "0 */5 * * * *", "command": "list", "outputToConsole": true }
   },
-  // 覆盖命令注册时的权限等级。修改后需要重启服务器。
+  // 命令权限覆盖 (需重启生效)。
   "commandPermissions": {
     "enable": false,
-    // 规则的 permissionLevel 可选：Any、GameDirectors、Admin、Host、Owner、Internal。
-    "rules": []
+    "rules": [] // 例: { "command": "stop", "permissionLevel": "Admin" }
   },
-  // 修改客户端服务器列表中显示的 MOTD 和人数。
+  // 自定义服务器列表显示。
   "serverPong": {
     "enable": false,
     "motdEnable": false,
@@ -124,47 +98,36 @@
     "maxPlayerCountEnable": false,
     "maxPlayerCount": 0
   },
-  // 修改客户端进入世界时显示的存档名称，不会修改世界实际名称。
+  // 客户端显示存档名。
   "clientLevelName": {
     "enable": false,
     "name": ""
   },
-  // 资源包共存：服务器材质包和玩家自己启用的材质包同时生效。
-  // 原版把「必须下载服务器材质包」和「进服后禁用玩家自己的材质包」绑在一起，
-  // 下面三个开关分别对应拆开它所需要改的封包字段，通常保持默认即可。
+  // 资源包共存：拆分进服协议中的资源包选项，允许客户端使用自选包。
   "coResourcePack": {
     "enable": false,
-    // 让客户端必须下载服务器的材质包（覆盖 server.properties 的 texturepack-required）。
-    "forceRequired": true,
-    // 把服务器下发的包标记为附带内容，而不是玩家自选的材质包。
-    "markAsAddonPack": true,
-    // 不再因为「世界要求材质包」而踢掉玩家自己启用的材质包。
-    "allowClientPacks": true
+    "forceRequired": true, // 强制下载
+    "markAsAddonPack": true, // 标记为扩展包
+    "allowClientPacks": true // 允许客户端使用自选包
   },
-  // 生存服默认仅在经验球/箭矢超量时清理；保留掉落物、怪物和玩家附近实体。
+  // 实体清理：定时或超量触发。支持保护名单、预告与手动清理面板 (/eclean)。
   "entityCleaner": {
     "enable": true,
-    // true 只统计并记录日志，不实际删除实体。
-    "dryRun": false,
+    "dryRun": false, // true 时仅统计不实际删除
     "schedule": {
       "enable": false,
       "cron": "0 */10 * * * *"
     },
     "threshold": {
       "enable": true,
-      // 候选实体数超过此值时触发阈值清理。
-      "maxEntities": 1000,
-      // 阈值清理后最多保留的候选实体数。
-      "targetEntities": 500,
+      "maxEntities": 1000, // 触发阈值
+      "targetEntities": 500, // 目标保留数
       "checkIntervalTicks": 100,
-      "cooldownSeconds": 300,
-      // 最近一次服务端 tick 耗时超过此值（单位：毫秒）时触发阈值清理；0 表示关闭。
-      "maxMspt": 0.0
+      "cooldownSeconds": 300, // 两次清理间隔 (s)
+      "maxMspt": 0.0 // 高延迟触发阈值 (0=关闭)
     },
     "droppedItem": {
-      // age 从 6000 向下递减；大于此值时视为刚生成并予以保护。0 表示关闭。
-      "protectAboveAge": 5900,
-      // 贵重物品白名单；匹配完整物品标识的掉落物始终保留。
+      "protectAboveAge": 5900, // 年龄保护 (倒计数, 0=关)
       "whitelist": [
         "minecraft:netherite_helmet",
         "minecraft:netherite_sword",
@@ -190,9 +153,7 @@
       ]
     },
     "filter": {
-      // whitelist=只清理名单内类型/family；blacklist=名单内受保护，其余清理。
-      "mode": "whitelist",
-      // 不包含 minecraft:item 或 monster，保留死亡掉落物和生存农场中的生物。
+      "mode": "whitelist", // 模式：whitelist(仅清名单内)/blacklist(保护名单内)
       "typeNames": [
         "minecraft:xp_orb",
         "minecraft:arrow"
@@ -200,70 +161,44 @@
       "families": []
     },
     "protection": {
-      // 下面的布尔值为 true 时启用对应保护，设为 false 后实体仍需通过名单和其他保护检查才可能被清理。
-      // 命名保护：实体的名称标签不为空时跳过清理。玩家无论如何都会跳过。
-      "named": true,
-      // 驯服保护：跳过已驯服的动物或坐骑，例如狼、猫、鹦鹉和马。
-      "tamed": true,
-      // 拴绳保护：跳过当前被拴绳连接的实体。
-      "leashed": true,
-      // 载具/乘客保护：实体载有乘客，或实体正在骑乘另一个实体时跳过。
-      "vehicles": true,
-      // 持久化保护：跳过带有持久化标记、不会自然消失的实体；刷怪蛋或召唤命令生成的生物通常也带此标记。
-      // 如果希望清理这类苦力怕等实体，请设为 false，或在 /entitycleaner 的确认表单中取消勾选对应保留项。
-      "persistent": true,
-      // 村民保护：跳过 Villager、VillagerV2 和 WanderingTrader。
-      "villagers": true,
-      // 建造物保护：跳过盔甲架、画、末影水晶、NPC、拴绳结，以及所有矿车和船的变体。
-      "builds": true,
-      // Boss 保护：跳过末影龙和凋灵。
-      "bosses": true,
-      // 下落方块保护：跳过正在下落的沙子、砂砾、铁砧等 FallingBlock 实体。
-      "fallingBlocks": true,
-      // 移动方块保护：跳过活塞推动中的 MovingBlock 实体。
-      "movingBlocks": true,
-      // 鱼钩保护：跳过 FishingHook；关闭后可能影响自动钓鱼和正常钓鱼。
-      "fishingHooks": true,
-      // 不祥之瓶生成器保护：跳过试炼密室的不祥之瓶战利品生成器。
+      "named": true, // 命名实体
+      "tamed": true, // 已驯服生物
+      "leashed": true, // 拴绳生物
+      "vehicles": true, // 载具/骑乘实体
+      "persistent": true, // 持久化生物
+      "villagers": true, // 村民
+      "builds": true, // 建筑实体 (盔甲架/画/矿车等)
+      "bosses": true, // Boss
+      "fallingBlocks": true, // 下落方块
+      "movingBlocks": true, // 活塞移动中方块
+      "fishingHooks": true, // 鱼钩
       "ominousItemSpawners": true,
-      // 玩家距离保护：同一维度内距最近玩家小于此格数的实体跳过；0 或负数表示关闭。
-      "playerRadius": 32.0
+      "playerRadius": 32.0 // 保护玩家 32 格内实体
     },
     "warning": {
       "enable": true,
-      // 清理前广播的倒计时秒数；空数组表示触发即清理。
       "secondsBefore": [
         15
-      ],
-      // 空字符串使用当前语言的默认提示；{seconds} 为剩余秒数，支持 § 颜色代码。
-      "message": "",
-      // 是否向全服广播实际清理结果；不受上面的预告 enable 开关影响。
+      ], // 预告秒数
+      "message": "", // {seconds} 占位符
       "broadcastResult": true,
-      // {count} 为实际清理数量；空字符串使用当前语言的默认提示。
-      "resultMessage": ""
+      "resultMessage": "" // {count} 占位符
     },
-    // 是否在日志中输出按实体类型分组的删除统计。
     "logResult": true
   },
-  // 爆炸控制。规则按顺序应用；可选覆盖字段为 null 时保持原版值。
+  // 爆炸控制 (规则按顺序应用)。
   "explosionControl": {
     "enable": false,
-    // 规则的 sourceType 使用 * 匹配所有来源、<none> 匹配没有实体来源的爆炸。
-    "rules": []
+    "rules": [] // sourceType: * 匹配所有, <none> 无实体来源
   },
-  // 活塞控制。默认关闭；开启后按下面的方块规则和实体名单生效。
+  // 活塞控制：自定义规则需重启生效。
   "pistonControl": {
     "enable": false,
-    // 方块规则在启动时应用，修改规则或关闭已应用的规则后需要重启服务器。
-    // 方块 ID -> { "movementType": 0, "stickyType": 0 }。
-    // movementType：0=可推拉，1=只推不拉，2=推动时破坏，3=不可移动。
-    // stickyType：0=无黏性，1=黏性。空对象表示不修改原版规则。
+    // 方块ID -> { movementType(0-3), stickyType(0-1) }
     "customPistonBlocks": {},
-    // 免疫活塞推动及移动方块、活塞臂碰撞的实体完整 ID；支持 /wanxiang reload。
-    // 例如 ["minecraft:armor_stand", "minecraft:pig"]；["*"] 匹配所有实体。
-    "pistonImmuneEntities": []
+    "pistonImmuneEntities": [] // 免疫列表 (["*"] 匹配所有)
   },
-  // 生物方块破坏控制。用于禁止凋灵和掠夺兽破坏方块。
+  // 生物方块破坏控制。
   "mobBlockDestruction": {
     "enable": false,
     "wither": true,
