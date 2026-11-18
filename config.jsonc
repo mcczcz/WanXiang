@@ -10,12 +10,17 @@
   "autoReplenishEnable": true,
   "abilityCommandEnable": true,
   "msptCommandEnable": true,
-  // 启用 /vanish 隐身 (仅 OP)。修改后 /wanxiang reload 生效。
+  // 启用 /vanish 隐身 (仅 OP)。
   "vanishEnable": true,
   "cleanUnknownBlocksEnable": false,
   "hideOpPermissionEnable": true,
   "clientAchievementsEnable": false,
-  // 侧边栏：/sidebar on|off 切换，/wanxiang reload 重载。支持 Placeholder 占位符。
+  // 聊天格式：支持 {author}、{message}、Placeholder 占位符及 § 颜色代码，。
+  "chatFormatter": {
+    "enable": false,
+    "format": "<{author}> {message}"
+  },
+  // 侧边栏：/sidebar on|off 切换,支持 Placeholder 占位符。
   "sidebar": {
     "enable": false,
     "defaultSidebarStatus": true, // 新玩家默认开启

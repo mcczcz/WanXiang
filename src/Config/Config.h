@@ -251,6 +251,11 @@ struct SidebarConfig {
     int                                  lineGroupSwitchInterval = 5000; // 毫秒
 };
 
+struct ChatFormatterConfig {
+    bool        enable = false;
+    std::string format = "<{author}> {message}";
+};
+
 struct Config {
     int                           version                  = 24;
     ll::io::LogLevel              logLevel                 = ll::io::LogLevel::Info;
@@ -281,6 +286,7 @@ struct Config {
     PistonControlConfig            pistonControl{};
     EntityCleanerConfig           entityCleaner{};
     SidebarConfig                 sidebar{};
+    ChatFormatterConfig           chatFormatter{};
 };
 
 } // namespace my_mod

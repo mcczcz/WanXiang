@@ -2,6 +2,7 @@
     "ability_command.name": "原版 ability 命令（abilityCommandEnable）",
     "auto_fishing.name": "自动钓鱼（autoFishingEnable）",
     "auto_replenish.name": "物品自动补充（autoReplenishEnable）",
+    "chat_formatter.name": "聊天格式（chatFormatter）",
     "clean_unknown_blocks.name": "未知方块清理（cleanUnknownBlocksEnable）",
     "client_achievements.name": "客户端成就（clientAchievementsEnable）",
     "client_level_name.name": "客户端存档名称（clientLevelName）",

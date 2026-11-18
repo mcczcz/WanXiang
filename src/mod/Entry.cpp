@@ -7,6 +7,7 @@
 #include "mod/AbilityCommand.h"
 #include "mod/AutoFishing.h"
 #include "mod/AutoReplenish.h"
+#include "mod/ChatFormatter.h"
 #include "mod/CleanUnknownBlocks.h"
 #include "mod/ClientAchievements.h"
 #include "mod/ClientLevelName.h"
@@ -335,6 +336,11 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!feature_diagnostics::enable("chat_formatter", chat_formatter::enable)) {
+        disable();
+        return false;
+    }
+
     logger.info(tr("plugin.enabled"));
     return true;
 }
@@ -371,6 +377,7 @@ bool Entry::reload() {
         {custom_hurt_interval::enable,  custom_hurt_interval::disable,  "custom_hurt_interval" },
         {sidebar::enable,               sidebar::disable,               "sidebar"              },
         {vanish::enable,                vanish::disable,                "vanish"               },
+        {chat_formatter::enable,        chat_formatter::disable,        "chat_formatter"       },
     };
 
     auto stopFeatures = [&] {
@@ -418,6 +425,7 @@ bool Entry::reload() {
 
 bool Entry::disable() {
     getSelf().getLogger().debug("Disabling...");
+    chat_formatter::disable();
     client_achievements::disable();
     auto_replenish::disable();
     vanish::disable();
@@ -452,6 +460,7 @@ bool Entry::disable() {
 
 bool Entry::unload() {
     getSelf().getLogger().debug("Unloading...");
+    chat_formatter::disable();
     client_achievements::disable();
     auto_replenish::disable();
     vanish::disable();

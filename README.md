@@ -40,6 +40,7 @@
 | 配置项 | 功能描述 | 默认 |
 | --- | --- | --- |
 | `sidebar` | 动态侧边栏，支持 Placeholder 与玩家开关持久化 | `enable=false` |
+| `chatFormatter` | 自定义聊天格式，支持 `{author}`、`{message}`、Placeholder 和颜色代码 | `enable=false` |
 | `entityCleaner` | 定时或超量清理已加载实体，支持保护规则与预告 | `enable=true` |
 | `xpOrbMerge` | 合并指定半径内的经验球 | `enable=true` |
 | `droppedItemLifetime` | 自定义默认及指定掉落物的存在时间 | `enable=false` |
@@ -61,6 +62,15 @@
 ## 常用配置示例
 
 完整带注释配置请参考根目录的 [`config.jsonc`](config.jsonc)。以下为常见场景的精简配置片段（只需保留需要修改的字段，缺失字段会自动补全默认值）：
+
+聊天格式配置示例：
+```json
+"chatFormatter": {
+    "enable": true,
+    "format": "<{author}> {message}"
+}
+```
+`{author}` 为发送者名称，`{message}` 为聊天内容，支持 Placeholder 玩家占位符。
 
 ### 1. 动态侧边栏 (`sidebar`)
 ```json
