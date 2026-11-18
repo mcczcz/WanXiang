@@ -153,6 +153,12 @@ struct CustomKnockbackConfig {
     KnockbackMultiplierConfig mob{};    // 玩家攻击其他生物
 };
 
+struct CustomHurtIntervalConfig {
+    bool enable = false;
+    int  player = 10; // 玩家攻击玩家后的无敌时间（tick）
+    int  mob    = 10; // 玩家攻击非玩家生物后的无敌时间（tick）
+};
+
 struct EntityCleanerScheduleConfig {
     bool        enable = false;
     std::string cron   = "0 */10 * * * *"; // 每 10 分钟
@@ -271,6 +277,7 @@ struct Config {
     ExplosionControlConfig         explosionControl{};
     MobBlockDestructionConfig      mobBlockDestruction{};
     CustomKnockbackConfig          customKnockback{};
+    CustomHurtIntervalConfig       customHurtInterval{};
     PistonControlConfig            pistonControl{};
     EntityCleanerConfig           entityCleaner{};
     SidebarConfig                 sidebar{};

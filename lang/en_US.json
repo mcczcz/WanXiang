@@ -8,6 +8,8 @@
     "command_permission.name": "Command permissions (commandPermissions)",
     "co_resource_pack.name": "Resource pack coexistence (coResourcePack)",
     "custom_knockback.name": "Custom knockback (customKnockback)",
+    "custom_hurt_interval.name": "Custom hurt interval (customHurtInterval)",
+    "custom_hurt_interval.invalid_ticks_detail": "Custom hurt interval failed to enable: intervals must be non-negative tick counts. Current settings: customHurtInterval.player={}, customHurtInterval.mob={}.",
     "dropped_item_lifetime.name": "Dropped item lifetime (droppedItemLifetime)",
     "entity_cleaner.name": "Entity cleaner (entityCleaner)",
     "entity_cleaner_command.name": "Entity cleaner command (/entitycleaner)",

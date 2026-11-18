@@ -43,6 +43,12 @@
       "vertical": 1.0
     }
   },
+  // 自定义受击间隔：仅玩家近战及玩家发射的投射物生效
+  "customHurtInterval": {
+    "enable": false,
+    "player": 10, // 受击目标为玩家时的 mInvulnerableTime（tick，20 tick = 1 秒，0 为无间隔）
+    "mob": 10 // 受击目标为非玩家生物时的 mInvulnerableTime（tick，必须 >= 0）
+  },
   // 掉落物存活时间 (秒)。只影响新生成的掉落物。
   "droppedItemLifetime": {
     "enable": false,

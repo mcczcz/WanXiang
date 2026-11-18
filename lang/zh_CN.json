@@ -8,6 +8,8 @@
     "command_permission.name": "命令权限修改（commandPermissions）",
     "co_resource_pack.name": "资源包共存（coResourcePack）",
     "custom_knockback.name": "自定义击退（customKnockback）",
+    "custom_hurt_interval.name": "自定义受击间隔（customHurtInterval）",
+    "custom_hurt_interval.invalid_ticks_detail": "自定义受击间隔启用失败：间隔必须为大于等于 0 的 tick 数。当前配置：customHurtInterval.player={}，customHurtInterval.mob={}。",
     "dropped_item_lifetime.name": "掉落物存在时间（droppedItemLifetime）",
     "entity_cleaner.name": "实体清理（entityCleaner）",
     "entity_cleaner_command.name": "实体清理管理命令（/entitycleaner）",

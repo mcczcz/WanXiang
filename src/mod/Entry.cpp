@@ -13,6 +13,7 @@
 #include "mod/CoResourcePack.h"
 #include "mod/CommandPermission.h"
 #include "mod/CustomKnockback.h"
+#include "mod/CustomHurtInterval.h"
 #include "mod/DroppedItemLifetime.h"
 #include "mod/EntityCleaner.h"
 #include "mod/EntityCleanerCommand.h"
@@ -304,6 +305,11 @@ bool Entry::enable() {
         return false;
     }
 
+    if (!feature_diagnostics::enable("custom_hurt_interval", custom_hurt_interval::enable)) {
+        disable();
+        return false;
+    }
+
     if (!feature_diagnostics::enable("sidebar", sidebar::enable)) {
         disable();
         return false;
@@ -362,6 +368,7 @@ bool Entry::reload() {
         {mob_block_destruction::enable, mob_block_destruction::disable, "mob_block_destruction"},
         {piston_control::enable,        piston_control::disable,        "piston_control"       },
         {custom_knockback::enable,      custom_knockback::disable,      "custom_knockback"     },
+        {custom_hurt_interval::enable,  custom_hurt_interval::disable,  "custom_hurt_interval" },
         {sidebar::enable,               sidebar::disable,               "sidebar"              },
         {vanish::enable,                vanish::disable,                "vanish"               },
     };
@@ -416,6 +423,7 @@ bool Entry::disable() {
     vanish::disable();
     sidebar::disable();
     reload_command::disable();
+    custom_hurt_interval::disable();
     custom_knockback::disable();
     piston_control::disable();
     mob_block_destruction::disable();
@@ -449,6 +457,7 @@ bool Entry::unload() {
     vanish::disable();
     sidebar::disable();
     reload_command::disable();
+    custom_hurt_interval::disable();
     custom_knockback::disable();
     piston_control::disable();
     mob_block_destruction::disable();

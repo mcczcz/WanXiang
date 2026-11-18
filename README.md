@@ -44,6 +44,7 @@
 | `xpOrbMerge` | 合并指定半径内的经验球 | `enable=true` |
 | `droppedItemLifetime` | 自定义默认及指定掉落物的存在时间 | `enable=false` |
 | `customKnockback` | 分别调整玩家攻击玩家/生物的水平与垂直击退倍率 | `enable=false` |
+| `customHurtInterval` | 分别设置玩家攻击玩家/非玩家生物的受击间隔，包含玩家投射物 | `enable=false` |
 | `pistonControl` | 自定义方块推拉规则及实体活塞免疫 | `enable=false` |
 | `mobEffectBlocker` | 阻止特定状态效果触发伤害/死亡附带行为 | `enable=false` |
 | `fastLeafDecay` | 原木或树叶破坏后加速清理无支撑树叶 | `enable=false` |
@@ -141,6 +142,11 @@
     "player": { "horizontal": 1.2, "vertical": 0.8 }, // 击退倍率 (1.0 为原版)
     "mob": { "horizontal": 1.0, "vertical": 1.0 }
 },
+"customHurtInterval": {
+    "enable": false,
+    "player": 10, // 玩家受击后的 mInvulnerableTime，单位 tick，20 tick = 1 秒
+    "mob": 10     // 非玩家生物受击后的 mInvulnerableTime，0 为无间隔，必须 >= 0
+},                // 仅玩家近战及玩家发射的投射物生效
 "droppedItemLifetime": {
     "enable": true,
     "defaultSeconds": 120,                           // 存活时间 (s)
