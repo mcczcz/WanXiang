@@ -3,11 +3,10 @@
 #ifdef LL_PLAT_S
 
 #include "mod/Entry.h"
-#include "mod/FeatureDiagnostics.h"
 #include "mod/Global.h"
 
 #include "ll/api/event/EventBus.h"
-#include "ll/api/event/server/ServerStartedEvent.h"
+#include "ll/api/event/world/ServerLevelTickEvent.h"
 #include "ll/api/service/Bedrock.h"
 #include "mc/deps/nbt/CompoundTag.h"
 #include "mc/world/level/storage/DBStorage.h"
@@ -212,13 +211,7 @@ void processActorRecord(
     }
 }
 
-void cleanUnloadedEntities() {
-    auto dbStorage = ll::service::getDBStorage();
-    if (!dbStorage) {
-        logger.warn(tr("unloaded_entities_cleaner.storage_unavailable"));
-        return;
-    }
-
+void cleanUnloadedEntities(DBStorage& db) {
     auto const&  settings           = config.unloadedEntitiesCleaner;
     auto const&  entityTypesToClean = settings.entityTypeNamesToClean;
     bool const   filterEnabled      = !entityTypesToClean.empty();
@@ -234,7 +227,6 @@ void cleanUnloadedEntities() {
         logger.info(tr("unloaded_entities_cleaner.filter_disabled"));
     }
 
-    auto& db = *dbStorage;
     db.forEachKeyWithPrefix(
         ActorPrefix,
         DBHelpers::Category::Actor,
@@ -253,13 +245,24 @@ void cleanUnloadedEntities() {
     }
 }
 
-void onServerStarted(ll::event::ServerStartedEvent&) {
+void onServerTick(ll::event::ServerLevelTickEvent&) {
+    if (hasRun.load(std::memory_order_acquire)) {
+        return;
+    }
+
+    // LL enables mods after the ServerStartedEvent hook has returned. A listener
+    // registered from Entry::enable() misses that event. Wait for a server tick
+    // with storage available, and only then consume this startup's one attempt.
+    auto dbStorage = ll::service::getDBStorage();
+    if (!dbStorage) {
+        return;
+    }
     if (hasRun.exchange(true, std::memory_order_acq_rel)) {
         return;
     }
 
     try {
-        cleanUnloadedEntities();
+        cleanUnloadedEntities(*dbStorage);
     } catch (std::exception const& exception) {
         logger.error(tr("unloaded_entities_cleaner.failed", exception.what()));
     }
@@ -273,17 +276,13 @@ bool enable() {
     }
 
     hasRun.store(false, std::memory_order_release);
-    listener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerStartedEvent>(onServerStarted);
-    return feature_diagnostics::checkEvent(
-        "unloaded_entities_cleaner",
-        "ll::event::ServerStartedEvent",
-        listener != nullptr
-    );
+    listener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);
+    return listener != nullptr;
 }
 
 void disable() {
     if (listener) {
-        ll::event::EventBus::getInstance().removeListener<ll::event::ServerStartedEvent>(listener);
+        ll::event::EventBus::getInstance().removeListener<ll::event::ServerLevelTickEvent>(listener);
         listener.reset();
     }
     hasRun.store(false, std::memory_order_release);
