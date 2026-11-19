@@ -20,6 +20,7 @@
 #include "features/entities/cleanup/EntityCleanerCommand.h"
 #include "features/world/ExplosionControl.h"
 #include "features/world/FastLeafDecay.h"
+#include "features/world/QuickHarvest.h"
 #include "FeatureDiagnostics.h"
 #include "features/client/HideOpPermission.h"
 #include "features/world/MobBlockDestruction.h"
@@ -73,6 +74,7 @@ constexpr Feature runtimeFeatures[] = {
     WANXIANG_FEATURE(xp_orb_merge),
     WANXIANG_FEATURE(mob_effect_blocker),
     WANXIANG_FEATURE(fast_leaf_decay),
+    WANXIANG_FEATURE(quick_harvest),
     WANXIANG_FEATURE(clean_unknown_blocks),
     WANXIANG_FEATURE(unloaded_entities_cleaner),
     WANXIANG_FEATURE(hide_op_permission),
@@ -107,6 +109,7 @@ constexpr Feature reloadFeatures[] = {
     WANXIANG_FEATURE(xp_orb_merge),
     WANXIANG_FEATURE(mob_effect_blocker),
     WANXIANG_FEATURE(fast_leaf_decay),
+    WANXIANG_FEATURE(quick_harvest),
     WANXIANG_FEATURE(clean_unknown_blocks),
     WANXIANG_FEATURE(hide_op_permission),
     WANXIANG_FEATURE(scheduled_command),

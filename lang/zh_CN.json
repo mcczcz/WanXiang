@@ -3,6 +3,7 @@
     "auto_fishing.name": "自动钓鱼（autoFishingEnable）",
     "auto_replenish.name": "物品自动补充（autoReplenishEnable）",
     "container_preview.name": "容器预览（containerPreviewEnable）",
+    "quick_harvest.name": "快速收割（quickHarvestEnable）",
     "container_preview.title": "容器预览（只读）",
     "chat_formatter.name": "聊天格式（chatFormatter）",
     "clean_unknown_blocks.name": "未知方块清理（cleanUnknownBlocksEnable）",

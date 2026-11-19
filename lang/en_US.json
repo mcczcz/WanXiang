@@ -4,6 +4,7 @@
     "auto_fishing.name": "Auto fishing (autoFishingEnable)",
     "auto_replenish.name": "Auto replenish (autoReplenishEnable)",
     "container_preview.name": "Container preview (containerPreviewEnable)",
+    "quick_harvest.name": "Quick harvest (quickHarvestEnable)",
     "container_preview.title": "Container Preview (Read-Only)",
     "clean_unknown_blocks.name": "Unknown block cleanup (cleanUnknownBlocksEnable)",
     "client_achievements.name": "Client achievements (clientAchievementsEnable)",
