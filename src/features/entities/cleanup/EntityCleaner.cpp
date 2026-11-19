@@ -57,11 +57,11 @@ std::unordered_set<std::string> filterTypeNames;
 std::vector<HashedString>       filterFamilies;
 
 // --- enable() 时净化过的数值，后续代码可以直接信任 ---
-int    thresholdMax         = 0;
-int    thresholdTarget      = 0;
-int    thresholdCheckTicks  = 1;
-int    thresholdCooldown    = 0;
-double thresholdMaxMspt          = 0.0;
+int    thresholdMax               = 0;
+int    thresholdTarget            = 0;
+int    thresholdCheckTicks        = 1;
+int    thresholdCooldown          = 0;
+double thresholdMaxMspt           = 0.0;
 int    droppedItemProtectAboveAge = 0;
 float  protectRadiusSquared       = 0.0F;
 bool   protectRadiusEnabled       = false;
@@ -92,21 +92,15 @@ int consecutiveErrors = 0;
 
 // ---------------------------------------------------------------------------
 // 第 1 层：按实体类型保护
-//
-// 一律用 getEntityTypeId() 精确比较或 hasCategory()，不用 hasType()。
-// hasType 是 MCAPI 游戏函数，头文件里看不到实现，掩码语义（(a&b)==b 还是 !=0）
-// 无从验证；而 ActorCategory.h 里 hasCategory 是 inline 的
-// (mCategories & category) == category，语义确定。这一层默认保护的都是删掉就找不回来的
-// 东西，不能押在未经验证的语义上。每一组都允许管理员显式关闭。
 // ---------------------------------------------------------------------------
 
 bool isTransientTypeProtected(ActorType type, EntityCleanerProtectionConfig const& protection) {
     switch (type) {
-    case ActorType::FallingBlock:       // 正在下落的沙子/砂砾/铁砧
+    case ActorType::FallingBlock: // 正在下落的沙子/砂砾/铁砧
         return protection.fallingBlocks;
-    case ActorType::MovingBlock:        // 活塞推动中的方块
+    case ActorType::MovingBlock: // 活塞推动中的方块
         return protection.movingBlocks;
-    case ActorType::FishingHook:        // 删除会破坏本项目自己的 auto_fishing 模块
+    case ActorType::FishingHook: // 删除会破坏本项目自己的 auto_fishing 模块
         return protection.fishingHooks;
     case ActorType::OminousItemSpawner: // 试炼密室战利品
         return protection.ominousItemSpawners;
@@ -116,23 +110,19 @@ bool isTransientTypeProtected(ActorType type, EntityCleanerProtectionConfig cons
 }
 
 bool isTypeProtected(Actor const& actor) {
-    auto const& protection = config.entityCleaner.protection;
-    ActorType const type   = actor.getEntityTypeId();
+    auto const&     protection = config.entityCleaner.protection;
+    ActorType const type       = actor.getEntityTypeId();
 
     if (isTransientTypeProtected(type, protection)) {
         return true;
     }
 
-    // Bedrock 没有 boss family（末影龙是 dragon/monster/mob，凋灵是
-    // wither/undead/monster/mob），所以 Boss 只能在这里按类型保护。默认白名单里的
-    // "monster" 恰好会把末影龙选为候选，全靠这一条救回来。
+
     if (protection.bosses && (type == ActorType::Dragon || type == ActorType::WitherBoss)) {
         return true;
     }
 
-    // 必须同时列 Villager 和 VillagerV2：现代版本只生成 _v2，漏掉它等于删光所有村民。
-    // 这里刻意不用 hasCategory(ActorCategory::Villager)——EvocationIllagerMonster
-    // 定义为 Monster|Humanoid|Villager，会把卫道士/唤魔者一并保护，导致袭击农场堆积。
+
     if (protection.villagers
         && (type == ActorType::Villager || type == ActorType::VillagerV2 || type == ActorType::WanderingTrader)) {
         return true;
@@ -143,8 +133,8 @@ bool isTypeProtected(Actor const& actor) {
         case ActorType::ArmorStand:
         case ActorType::Painting:
         case ActorType::EnderCrystal:
-        case ActorType::Npc: // 管理员放置的对话 NPC，删掉对冒险服是灾难
-        case ActorType::LeashKnot: // 拴绳结：删掉会让整段栅栏上的拴绳全部断开
+        case ActorType::Npc:
+        case ActorType::LeashKnot:
             return true;
         default:
             break;
@@ -162,9 +152,9 @@ bool isTypeProtected(Actor const& actor) {
 // 第 2 层：按运行时状态保护，与类型无关，两种 mode 下都生效。
 bool isStateProtected(Actor const& actor) {
     auto const& protection = config.entityCleaner.protection;
-    return (protection.named && !actor.getNameTag().empty())      //
-        || (protection.tamed && actor.isTame())                   //
-        || (protection.leashed && actor.isLeashed())              //
+    return (protection.named && !actor.getNameTag().empty()) //
+        || (protection.tamed && actor.isTame())              //
+        || (protection.leashed && actor.isLeashed())         //
         || (protection.vehicles && (actor.hasPassenger() || actor.getVehicle() != nullptr))
         || (protection.persistent && actor.hasComponent(HashedString{"minecraft:persistent"}));
 }
@@ -205,8 +195,8 @@ bool isFinitePosition(Vec3 const& position) {
     return std::isfinite(position.x) && std::isfinite(position.y) && std::isfinite(position.z);
 }
 
-// 收集本轮可清理的实体。必须在**执行时刻**调用：把候选列表缓存到预告期（10 秒前）
-// 再用，会让其中每个 Actor* 都可能变成悬垂指针。
+// 收集本轮可清理的实体。
+
 std::vector<Candidate> collectCandidates(Level& level) {
     // 玩家坐标按维度分桶，距离只在同维度内比较。
     std::unordered_map<DimensionType, std::vector<Vec3>> playersByDimension;
@@ -219,7 +209,6 @@ std::vector<Candidate> collectCandidates(Level& level) {
 
     std::vector<Candidate> candidates;
     for (Actor* actor : level.getRuntimeActorList()) {
-        // 玩家始终不进入清理候选，不能通过 entityCleaner 配置关闭这项保护。
         if (actor == nullptr || actor->mRemoved || actor->isPlayer()) {
             continue;
         }
@@ -229,8 +218,6 @@ std::vector<Candidate> collectCandidates(Level& level) {
         }
 
         Vec3 const& position = actor->getPosition();
-        // 非有限坐标会让距离变成 NaN，破坏 std::sort 的严格弱序并导致内省排序越界。
-        // 这是整个模块最容易踩出硬崩溃的地方，必须在进入排序前就挡掉。
         if (!isFinitePosition(position)) {
             continue;
         }
@@ -282,10 +269,10 @@ void executeCleanup(Level& level, CleanupKind kind) {
     std::size_t removeCount = candidates.size();
     if (kind == CleanupKind::Threshold) {
         auto const target = static_cast<std::size_t>(thresholdTarget);
-        // 候选数可能少于 target，减法必须防下溢。
+
         removeCount = candidates.size() > target ? candidates.size() - target : 0;
         if (removeCount > 0 && removeCount < candidates.size()) {
-            // 离玩家最远的先删，玩家眼前的实体尽量留下。只需前 removeCount 个有序。
+
             std::partial_sort(
                 candidates.begin(),
                 candidates.begin() + static_cast<std::ptrdiff_t>(removeCount),
@@ -303,7 +290,7 @@ void executeCleanup(Level& level, CleanupKind kind) {
         if (actor == nullptr || actor->mRemoved) {
             continue;
         }
-        ++removedByType[actor->getTypeName()]; // 必须在 remove() 之前取名字
+        ++removedByType[actor->getTypeName()];
         ++removed;
         if (!cleanerConfig.dryRun) {
             actor->remove();
@@ -315,12 +302,11 @@ void executeCleanup(Level& level, CleanupKind kind) {
     } else {
         logger.info(tr("entity_cleaner.result", removed, candidates.size()));
         if (removed > 0 && cleanerConfig.warning.broadcastResult) {
-            // 玩家只看一行汇总，按类型分组的明细留在日志里。
+
             broadcast(
                 level,
-                resultMessage.empty()
-                    ? tr("entity_cleaner.broadcast_done", removed)
-                    : fmt::format(fmt::runtime(resultMessage), removed, fmt::arg("count", removed))
+                resultMessage.empty() ? tr("entity_cleaner.broadcast_done", removed)
+                                      : fmt::format(fmt::runtime(resultMessage), removed, fmt::arg("count", removed))
             );
         }
     }
@@ -334,7 +320,7 @@ void executeCleanup(Level& level, CleanupKind kind) {
 
 void requestCleanup(CleanupKind kind) {
     if (pendingKind == CleanupKind::Scheduled) {
-        return; // 已是最高优先级
+        return;
     }
     if (pendingKind == CleanupKind::Threshold && kind != CleanupKind::Scheduled) {
         return;
@@ -370,8 +356,6 @@ void updatePending(Level& level) {
 
     auto const remaining = std::chrono::ceil<std::chrono::seconds>(pendingDeadline - now).count();
 
-    // 卡顿时可能一次跨过好几个刻度。只播报最近的那一个，避免刷出「10 秒」「5 秒」
-    // 一串已经过时的数字。
     std::size_t announce = warningMarks.size();
     while (nextWarningIndex < warningMarks.size()
            && remaining <= static_cast<long long>(warningMarks[nextWarningIndex])) {
@@ -382,9 +366,8 @@ void updatePending(Level& level) {
         int const seconds = static_cast<int>(remaining);
         broadcast(
             level,
-            warningMessage.empty()
-                ? tr("entity_cleaner.warning", seconds)
-                : fmt::format(fmt::runtime(warningMessage), seconds, fmt::arg("seconds", seconds))
+            warningMessage.empty() ? tr("entity_cleaner.warning", seconds)
+                                   : fmt::format(fmt::runtime(warningMessage), seconds, fmt::arg("seconds", seconds))
         );
     }
 }
@@ -412,8 +395,6 @@ void checkThreshold(Level& level) {
         }
     }
 
-    // ProfilerLite stores the completed server tick duration in nanoseconds. An MSPT trigger
-    // shares the same cleanup target and cooldown as the entity-count trigger.
     bool const msptThresholdExceeded = thresholdMaxMspt > 0.0 && currentMspt() > thresholdMaxMspt;
     if (msptThresholdExceeded) {
         requestCleanup(CleanupKind::Threshold);
@@ -421,7 +402,6 @@ void checkThreshold(Level& level) {
     }
 
     // 比较的是「候选数」而不是世界实体总数：后者含玩家和全部受保护实体，用它做判据
-    // 会让「2500 个受保护村民 + 500 只怪」的服务器永远触发、永远清不到目标。
     if (collectCandidates(level).size() > static_cast<std::size_t>(thresholdMax)) {
         requestCleanup(CleanupKind::Threshold);
     }
@@ -457,15 +437,13 @@ void onServerTick(ll::event::ServerLevelTickEvent& event) {
         tickImpl(event);
         consecutiveErrors = 0;
     } catch (std::exception const& exception) {
-        // tr() 底层是 fmt::format(fmt::runtime(...))，语言文件里占位符数量不匹配就会
-        // 抛 fmt::format_error。在每 tick 执行的回调里放任异常逃逸会直接拖垮服务器。
-        //
-        // 这里刻意不用 tr()：它自己就是最可能的异常来源，在 catch 里再抛一次会直接
-        // terminate。logger 的格式串是编译期检查的字面量，安全。
-        ++consecutiveErrors;
         if (consecutiveErrors >= MaxConsecutiveErrors) {
             active = false;
-            logger.error("Entity cleaner disabled after {} consecutive failures: {}", consecutiveErrors, exception.what());
+            logger.error(
+                "Entity cleaner disabled after {} consecutive failures: {}",
+                consecutiveErrors,
+                exception.what()
+            );
         } else {
             logger.error("Entity cleaner tick failed: {}", exception.what());
         }
@@ -473,22 +451,22 @@ void onServerTick(ll::event::ServerLevelTickEvent& event) {
 }
 
 void resetState() {
-    active               = false;
-    filterIsWhitelist    = false;
+    active            = false;
+    filterIsWhitelist = false;
     filterTypeNames.clear();
     filterFamilies.clear();
     warningMarks.clear();
-    warningLeadSeconds   = 0;
+    warningLeadSeconds = 0;
     warningMessage.clear();
     resultMessage.clear();
-    thresholdMax         = 0;
-    thresholdTarget      = 0;
-    thresholdCheckTicks  = 1;
-    thresholdCooldown    = 0;
-    thresholdMaxMspt     = 0.0;
+    thresholdMax               = 0;
+    thresholdTarget            = 0;
+    thresholdCheckTicks        = 1;
+    thresholdCooldown          = 0;
+    thresholdMaxMspt           = 0.0;
     droppedItemProtectAboveAge = 0;
-    protectRadiusSquared = 0.0F;
-    protectRadiusEnabled = false;
+    protectRadiusSquared       = 0.0F;
+    protectRadiusEnabled       = false;
     droppedItemWhitelist.clear();
     cronEnabled          = false;
     cronNextRun          = 0;
@@ -549,11 +527,10 @@ bool isDroppedItemWhitelistedByConfig(::Actor const& actor) {
         return false;
     }
 
-    auto const& itemActor  = static_cast<ItemActor const&>(actor);
-    auto const& itemConfig = config.entityCleaner.droppedItem;
-    std::string const itemName = itemActor.item().getTypeName();
-    return std::find(itemConfig.whitelist.begin(), itemConfig.whitelist.end(), itemName)
-        != itemConfig.whitelist.end();
+    auto const&       itemActor  = static_cast<ItemActor const&>(actor);
+    auto const&       itemConfig = config.entityCleaner.droppedItem;
+    std::string const itemName   = itemActor.item().getTypeName();
+    return std::find(itemConfig.whitelist.begin(), itemConfig.whitelist.end(), itemName) != itemConfig.whitelist.end();
 }
 
 bool enable() {
@@ -583,10 +560,8 @@ bool enable() {
     if (cleanerConfig.schedule.enable) {
         try {
             cronExpression = cron::make_cron(cleanerConfig.schedule.cron);
-            cronNextRun    = cron::cron_next(
-                cronExpression,
-                std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())
-            );
+            cronNextRun =
+                cron::cron_next(cronExpression, std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
             cronEnabled = true;
         } catch (std::exception const& exception) {
             logger.error(tr("entity_cleaner.invalid_cron", cleanerConfig.schedule.cron, exception.what()));
@@ -620,13 +595,13 @@ bool enable() {
     }
 
     // 数值净化，让后续代码可以直接信任这些值。
-    thresholdMax        = std::max(cleanerConfig.threshold.maxEntities, 0);
-    thresholdTarget     = std::clamp(cleanerConfig.threshold.targetEntities, 0, std::max(thresholdMax - 1, 0));
-    thresholdCheckTicks = std::max(cleanerConfig.threshold.checkIntervalTicks, 1);
-    thresholdCooldown   = std::max(cleanerConfig.threshold.cooldownSeconds, 0);
-    thresholdMaxMspt    = std::isfinite(cleanerConfig.threshold.maxMspt) && cleanerConfig.threshold.maxMspt > 0.0
-                            ? cleanerConfig.threshold.maxMspt
-                            : 0.0;
+    thresholdMax               = std::max(cleanerConfig.threshold.maxEntities, 0);
+    thresholdTarget            = std::clamp(cleanerConfig.threshold.targetEntities, 0, std::max(thresholdMax - 1, 0));
+    thresholdCheckTicks        = std::max(cleanerConfig.threshold.checkIntervalTicks, 1);
+    thresholdCooldown          = std::max(cleanerConfig.threshold.cooldownSeconds, 0);
+    thresholdMaxMspt           = std::isfinite(cleanerConfig.threshold.maxMspt) && cleanerConfig.threshold.maxMspt > 0.0
+                                   ? cleanerConfig.threshold.maxMspt
+                                   : 0.0;
     droppedItemProtectAboveAge = std::max(cleanerConfig.droppedItem.protectAboveAge, 0);
     droppedItemWhitelist.reserve(cleanerConfig.droppedItem.whitelist.size());
     for (std::string const& itemName : cleanerConfig.droppedItem.whitelist) {
@@ -660,8 +635,9 @@ bool enable() {
     }
     // 关闭预告或刻度为空 => 提前量为 0 => 触发即执行。
     warningLeadSeconds = warningMarks.empty() ? 0 : warningMarks.front();
-    warningMessage = validateMessage(cleanerConfig.warning.message, "seconds", "entityCleaner.warning.message");
-    resultMessage = validateMessage(cleanerConfig.warning.resultMessage, "count", "entityCleaner.warning.resultMessage");
+    warningMessage     = validateMessage(cleanerConfig.warning.message, "seconds", "entityCleaner.warning.message");
+    resultMessage =
+        validateMessage(cleanerConfig.warning.resultMessage, "count", "entityCleaner.warning.resultMessage");
 
     active       = true;
     tickListener = ll::event::EventBus::getInstance().emplaceListener<ll::event::ServerLevelTickEvent>(onServerTick);

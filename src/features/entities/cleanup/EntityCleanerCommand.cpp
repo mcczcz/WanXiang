@@ -44,6 +44,8 @@ struct EntityTypeEntry {
     std::string key;
 };
 
+using EntityCounts = std::vector<std::pair<std::string, std::size_t>>;
+
 struct ManualCleanupOptions {
     bool  keepTypeProtected           = true;
     bool  keepYoungDroppedItems       = true;
@@ -88,6 +90,15 @@ std::map<std::string, std::size_t> collectEntityCounts(Level& level) {
         }
     }
     return counts;
+}
+
+void sortEntityCounts(EntityCounts& counts) {
+    std::sort(counts.begin(), counts.end(), [](auto const& left, auto const& right) {
+        if (left.second != right.second) {
+            return left.second > right.second;
+        }
+        return left.first < right.first;
+    });
 }
 
 bool getToggle(ll::form::CustomFormResult const& result, std::string const& key) {
@@ -213,13 +224,18 @@ void executeManualCleanup(
 
 void showConfirmationForm(Player& player, std::vector<std::string> selectedTypes) {
     auto const counts = collectEntityCounts(player.getLevel());
+    EntityCounts selectedCounts;
+    selectedCounts.reserve(selectedTypes.size());
+    for (std::string const& typeName : selectedTypes) {
+        auto const found = counts.find(typeName);
+        selectedCounts.emplace_back(typeName, found == counts.end() ? 0U : found->second);
+    }
+    sortEntityCounts(selectedCounts);
 
     ll::form::CustomForm form(tr("entity_cleaner_command.confirm_title"));
     form.setSubmitButton(tr("entity_cleaner_command.confirm_button"));
     form.appendHeader(tr("entity_cleaner_command.confirm_header"));
-    for (std::string const& typeName : selectedTypes) {
-        auto const found = counts.find(typeName);
-        auto const count = found == counts.end() ? 0U : found->second;
+    for (auto const& [typeName, count] : selectedCounts) {
         form.appendLabel("- " + typeName + ": " + std::to_string(count));
     }
 
@@ -294,6 +310,8 @@ void showConfirmationForm(Player& player, std::vector<std::string> selectedTypes
 
 void showSelectionForm(Player& player) {
     auto const counts = collectEntityCounts(player.getLevel());
+    EntityCounts sortedCounts(counts.begin(), counts.end());
+    sortEntityCounts(sortedCounts);
 
     ll::form::CustomForm form(tr("entity_cleaner_command.form_title"));
     form.setSubmitButton(tr("entity_cleaner_command.submit"));
@@ -303,7 +321,7 @@ void showSelectionForm(Player& player) {
     std::vector<EntityTypeEntry> entries;
     entries.reserve(counts.size());
     std::size_t index = 0;
-    for (auto const& [typeName, count] : counts) {
+    for (auto const& [typeName, count] : sortedCounts) {
         std::string key = "entity_" + std::to_string(index++);
         form.appendToggle(key, typeName + " (" + std::to_string(count) + ")", false);
         entries.push_back(EntityTypeEntry{typeName, std::move(key)});
