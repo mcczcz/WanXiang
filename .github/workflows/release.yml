@@ -65,29 +65,8 @@ jobs:
           path: |
             bin/
 
-  update-release-notes:
-    needs: validate-version
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: refs/tags/${{ env.RELEASE_TAG }}
-
-      - id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v2
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          body: |
-            ${{ steps.extract-release-notes.outputs.release_notes }}
-
   upload-to-release:
-    needs:
-      - build
-      - update-release-notes
+    needs: build
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -108,18 +87,17 @@ jobs:
           zip -r ../${{ github.event.repository.name }}-server-windows-x64.zip *
         working-directory: artifact
 
-      - name: Calculate SHA256
-        id: calculate-sha256
-        run: |
-          echo release=$(sha256sum ${{ github.event.repository.name }}-server-windows-x64.zip | awk '{print $1}') >> $GITHUB_OUTPUT
+      - id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@v2
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          append_body: true
-          body: |
-            | File | SHA256 |
-            | ---- | ------ |
-            | ${{ github.event.repository.name }}-server-windows-x64.zip | ${{ steps.calculate-sha256.outputs.release }} |
-          files: |
-            ${{ github.event.repository.name }}-server-windows-x64.zip
+      - name: Publish server package and release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES: ${{ steps.extract-release-notes.outputs.release_notes }}
+          ASSET_NAME: ${{ github.event.repository.name }}-server-windows-x64.zip
+        run: |
+          gh release upload "$RELEASE_TAG" "$ASSET_NAME" --repo "$GITHUB_REPOSITORY" --clobber
+          checksum=$(sha256sum "$ASSET_NAME" | awk '{print $1}')
+          printf '%s\n\n| File | SHA256 |\n| ---- | ------ |\n| %s | %s |\n' \
+            "$RELEASE_NOTES" "$ASSET_NAME" "$checksum" > release-notes.md
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --notes-file release-notes.md
