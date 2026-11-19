@@ -56,11 +56,7 @@ jobs:
           xmake repo -u
 
       - name: Configure Windows server
-        run: xmake f -a x64 -m release -p windows --toolchain=clang-cl --target_type=server --require=no -y
-
-      # Catalyst 0.5.2 calls option.set() when its nested build has no explicit job count.
-      - name: Install build dependencies
-        run: xmake require -j 1 -v -y
+        run: xmake f -a x64 -m release -p windows --toolchain=clang-cl --target_type=server -v -y
 
       - run: |
           xmake -w -y
