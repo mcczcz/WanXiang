@@ -1,85 +1,45 @@
 {
   "format_version": 3,
   "format_uuid": "289f771f-2c9a-4d73-9f3f-8492495a924d",
-  "tooth": "github.com/LiteLDev/levilamina-mod-template",
-  "version": "0.0.0",
+  "tooth": "github.com/mcczcz/WanXiang",
+  "version": "0.1.0",
   "info": {
-    "name": "My Mod",
-    "description": "Description of my mod",
+    "name": "万象 (WanXiang)",
+    "description": "Minecraft 基岩版 LeviLamina 服务端模组，提供实体清理、动态侧边栏、聊天格式、定时命令及多项可独立配置的玩法增强。",
     "tags": [
-      "platform:levilamina",
-      "type:mod"
+      "management",
+      "optimization",
+      "game-mechanics",
+      "visual"
     ],
-    "avatar_url": "https://example.com/my-mod/avatar.png"
+    "avatar_url": "https://raw.githubusercontent.com/mcczcz/WanXiang/main/icon.png"
   },
   "variants": [
     {
       "label": "",
       "platform": "win-x64",
       "dependencies": {
-        "github.com/LiteLDev/LeviLamina": "1.8.*"
+        "github.com/LiteLDev/LeviLamina": "26.60.7"
       },
       "assets": [
         {
           "type": "zip",
           "urls": [
-            "https://{{tooth}}/releases/download/v{{version}}/levilamina-mod-template-server-windows-x64.zip"
+            "https://{{tooth}}/releases/download/v{{version}}/WanXiang-server-windows-x64.zip"
           ],
           "placements": [
             {
               "type": "dir",
-              "src": "my-mod/",
-              "dest": "plugins/my-mod/"
+              "src": "WanXiang/",
+              "dest": "mods/WanXiang/"
             }
           ]
         }
       ],
-      "preserve_files": [],
-      "remove_files": [],
-      "scripts": {
-        "pre_install": [],
-        "install": [],
-        "post_install": [],
-        "pre_pack": [],
-        "post_pack": [],
-        "pre_uninstall": [],
-        "uninstall": [],
-        "post_uninstall": []
-      }
-    },
-    {
-      "label": "client",
-      "platform": "win-x64",
-      "dependencies": {
-        "github.com/LiteLDev/LeviLamina#client": "1.8.*"
-      },
-      "assets": [
-        {
-          "type": "zip",
-          "urls": [
-            "https://{{tooth}}/releases/download/v{{version}}/levilamina-mod-template-client-windows-x64.zip"
-          ],
-          "placements": [
-            {
-              "type": "dir",
-              "src": "my-mod/",
-              "dest": "mods/my-mod/"
-            }
-          ]
-        }
-      ],
-      "preserve_files": [],
-      "remove_files": [],
-      "scripts": {
-        "pre_install": [],
-        "install": [],
-        "post_install": [],
-        "pre_pack": [],
-        "post_pack": [],
-        "pre_uninstall": [],
-        "uninstall": [],
-        "post_uninstall": []
-      }
+      "preserve_files": [
+        "mods/WanXiang/config/config.jsonc",
+        "mods/WanXiang/data/sidebar.db"
+      ]
     }
   ]
 }
