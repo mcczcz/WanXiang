@@ -17,6 +17,7 @@
 #include <map>
 #include <regex>
 #include <string>
+#include <string_view>
 
 namespace my_mod::dropped_item_lifetime {
 namespace {
@@ -35,11 +36,15 @@ std::map<std::string, RegexRule> regexRules;
 void loadRegexRules() {
     regexRules.clear();
     for (auto const& [key, seconds] : config.droppedItemLifetime.items) {
-        if (key.size() < 2 || key.front() != '/' || key.back() != '/') {
+        std::string_view pattern = key;
+        if (pattern.size() >= 2 && pattern.front() == '/' && pattern.back() == '/') {
+            pattern.remove_prefix(1);
+            pattern.remove_suffix(1);
+        } else if (pattern.find_first_of(R"(\.^$|()[]{}*+?)") == std::string_view::npos) {
             continue;
         }
         try {
-            regexRules.emplace(key, RegexRule{std::regex(key.begin() + 1, key.end() - 1), seconds});
+            regexRules.emplace(key, RegexRule{std::regex(pattern.begin(), pattern.end()), seconds});
         } catch (std::regex_error const& error) {
             logger.warn(tr("dropped_item_lifetime.invalid_regex", key, error.what()));
         }
