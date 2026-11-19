@@ -37,12 +37,14 @@ jobs:
           ref: refs/tags/${{ env.RELEASE_TAG }}
 
       - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: '3.0.9'
 
       - uses: actions/cache@v6
         with:
           path: |
             ~/AppData/Local/.xmake
-          key: xmake-${{ hashFiles('xmake.lua') }}
+          key: xmake-3.0.9-${{ hashFiles('xmake.lua') }}
           restore-keys: |
             xmake-
 
