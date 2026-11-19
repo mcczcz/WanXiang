@@ -1,26 +1,12 @@
-# Changelog
+# 更新日志
 
-All notable changes to this project will be documented in this file.
+## [0.1.0] - 2026-11-19
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+万象首个公开版本，适用于 Windows x64 上运行 LeviLamina `26.60.7` 的 Minecraft 基岩版服务端。
 
-## [Unreleased]
+- 支持定时、超量触发和手动清理实体，可配置保护规则。`/eclean` 面板按实体数量从多到少排列。
+- 提供动态侧边栏、自定义聊天格式、定时命令，以及 `/mspt` 和 `/vanish` 等管理命令。
+- 提供自动钓鱼、物品自动补充、经验球合并、掉落物寿命、击退、活塞及爆炸控制等可独立配置的功能。
+- 支持通过 `/wanxiang reload` 重载大部分运行时配置。
 
-### Added
-
-- Add `EventRegistrar` with a player join event example.
-- Add configurable join behaviors in `Config`:
-  - `exampleJoinMessageEnable`
-  - `exampleJoinLogEnable`
-- Add new i18n keys for lifecycle and event logs/messages.
-- Add `scripts/init-template.ps1` to initialize template placeholders.
-
-### Changed
-
-- Improve `README` with setup, structure, and extension workflow.
-- Introduce `src/mod/Global.h` and keep `src/mod/Gloabl.h` as a compatibility include.
-- Fix `ConfigManager` logger shadowing warnings and namespace comment.
-- Normalize `Config` header include usage (`Config.h`).
-- Make example behavior opt-in by default for template neutrality.
-- Auto-append missing top-level config keys in `config.json` while preserving existing comments and key order.
+通过 Lip 安装 `lip install github.com/mcczcz/WanXiang`。
