@@ -24,7 +24,7 @@ end
 add_requires("levibuildscript")
 add_requires("placeholder 0.7.2")
 add_requires("croncpp v2023.03.30")
-add_requires("catalyst 0.5.2")
+add_requires("catalyst ebbb6342cfb333ea0005e7264dfe91b0b1855896")
 add_requires("sqlite3")
 
 if not has_config("vs_runtime") then
