@@ -6,6 +6,7 @@
 #include "features/commands/AbilityCommand.h"
 #include "features/player/AutoFishing.h"
 #include "features/player/AutoReplenish.h"
+#include "features/player/ContainerPreview.h"
 #include "features/chat/ChatFormatter.h"
 #include "features/world/CleanUnknownBlocks.h"
 #include "features/client/ClientAchievements.h"
@@ -92,6 +93,7 @@ constexpr Feature runtimeFeatures[] = {
     WANXIANG_FEATURE(reload_command),
     WANXIANG_FEATURE(vanish),
     WANXIANG_FEATURE(auto_replenish),
+    WANXIANG_FEATURE(container_preview),
     WANXIANG_FEATURE(client_achievements),
     WANXIANG_FEATURE(chat_formatter),
 };
@@ -101,6 +103,7 @@ constexpr Feature reloadFeatures[] = {
     WANXIANG_FEATURE(trusted_skin),
     WANXIANG_FEATURE(auto_fishing),
     WANXIANG_FEATURE(auto_replenish),
+    WANXIANG_FEATURE(container_preview),
     WANXIANG_FEATURE(xp_orb_merge),
     WANXIANG_FEATURE(mob_effect_blocker),
     WANXIANG_FEATURE(fast_leaf_decay),

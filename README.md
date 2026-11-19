@@ -28,6 +28,7 @@
 | `trustedSkinEnable` | 标记玩家皮肤为可信 | `true` |
 | `autoFishingEnable` | 钓鱼成功后自动收杆并重新抛竿 | `false` |
 | `autoReplenishEnable` | 主手物品耗尽或工具损坏后自动补充 | `true` |
+| `containerPreviewEnable` | 右键受阻的箱子或陷阱箱时打开只读预览，支持双箱 | `false` |
 | `abilityCommandEnable` | 强制注册原版 `/ability` 命令 | `true` |
 | `msptCommandEnable` | 注册 `/mspt` MSPT/TPS 查询命令 | `true` |
 | `vanishEnable` | 启用 OP 隐身命令 `/vanish` | `true` |

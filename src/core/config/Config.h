@@ -263,6 +263,7 @@ struct Config {
     bool                          trustedSkinEnable        = true;
     bool                          autoFishingEnable        = false;
     bool                          autoReplenishEnable      = true;
+    bool                          containerPreviewEnable   = false;
     bool                          abilityCommandEnable     = true;
     bool                          msptCommandEnable        = true;
     bool                          vanishEnable             = true;

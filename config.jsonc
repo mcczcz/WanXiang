@@ -8,6 +8,8 @@
   "trustedSkinEnable": true,
   "autoFishingEnable": false,
   "autoReplenishEnable": true,
+  // 右键受阻的箱子或陷阱箱时打开只读预览，支持双箱。
+  "containerPreviewEnable": false,
   "abilityCommandEnable": true,
   "msptCommandEnable": true,
   // 启用 /vanish 隐身 (仅 OP)。

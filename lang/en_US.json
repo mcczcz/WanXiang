@@ -3,6 +3,8 @@
     "ability_command.name": "Vanilla ability command (abilityCommandEnable)",
     "auto_fishing.name": "Auto fishing (autoFishingEnable)",
     "auto_replenish.name": "Auto replenish (autoReplenishEnable)",
+    "container_preview.name": "Container preview (containerPreviewEnable)",
+    "container_preview.title": "Container Preview (Read-Only)",
     "clean_unknown_blocks.name": "Unknown block cleanup (cleanUnknownBlocksEnable)",
     "client_achievements.name": "Client achievements (clientAchievementsEnable)",
     "client_level_name.name": "Client level name (clientLevelName)",
