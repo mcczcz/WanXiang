@@ -21,6 +21,7 @@
 #include "features/world/ExplosionControl.h"
 #include "features/world/FastLeafDecay.h"
 #include "features/world/QuickHarvest.h"
+#include "features/world/RedstoneTickControl.h"
 #include "FeatureDiagnostics.h"
 #include "features/client/HideOpPermission.h"
 #include "features/world/MobBlockDestruction.h"
@@ -74,6 +75,7 @@ constexpr Feature runtimeFeatures[] = {
     WANXIANG_FEATURE(xp_orb_merge),
     WANXIANG_FEATURE(mob_effect_blocker),
     WANXIANG_FEATURE(fast_leaf_decay),
+    WANXIANG_FEATURE(redstone_tick_control),
     WANXIANG_FEATURE(quick_harvest),
     WANXIANG_FEATURE(clean_unknown_blocks),
     WANXIANG_FEATURE(unloaded_entities_cleaner),
@@ -109,6 +111,7 @@ constexpr Feature reloadFeatures[] = {
     WANXIANG_FEATURE(xp_orb_merge),
     WANXIANG_FEATURE(mob_effect_blocker),
     WANXIANG_FEATURE(fast_leaf_decay),
+    WANXIANG_FEATURE(redstone_tick_control),
     WANXIANG_FEATURE(quick_harvest),
     WANXIANG_FEATURE(clean_unknown_blocks),
     WANXIANG_FEATURE(hide_op_permission),

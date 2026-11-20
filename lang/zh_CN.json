@@ -19,6 +19,8 @@
     "entity_cleaner_command.name": "实体清理管理命令（/entitycleaner）",
     "explosion_control.name": "爆炸控制（explosionControl）",
     "fast_leaf_decay.name": "树叶快速腐烂（fastLeafDecay）",
+    "redstone_tick_control.name": "红石刻限制（redstoneTickControl）",
+    "redstone_tick_control.invalid_rate_detail": "红石刻限制启用失败：维度 {} 的每秒更新次数为 {}，应为 -1（原版）、0（暂停）或正数（支持小数）。",
     "hide_op_permission.name": "隐藏 OP 权限显示（hideOpPermissionEnable）",
     "mob_block_destruction.name": "生物方块破坏控制（mobBlockDestruction）",
     "mob_effect_blocker.name": "状态效果禁用（mobEffectBlocker）",

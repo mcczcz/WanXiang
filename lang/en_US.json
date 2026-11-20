@@ -19,6 +19,8 @@
     "entity_cleaner_command.name": "Entity cleaner command (/entitycleaner)",
     "explosion_control.name": "Explosion control (explosionControl)",
     "fast_leaf_decay.name": "Fast leaf decay (fastLeafDecay)",
+    "redstone_tick_control.name": "Redstone tick control (redstoneTickControl)",
+    "redstone_tick_control.invalid_rate_detail": "Redstone tick control failed to enable: dimension {} has an update rate of {}. Use -1 for vanilla, 0 to pause, or a positive number (decimals supported).",
     "hide_op_permission.name": "Hide OP permissions (hideOpPermissionEnable)",
     "mob_block_destruction.name": "Mob block destruction control (mobBlockDestruction)",
     "mob_effect_blocker.name": "Mob effect blocker (mobEffectBlocker)",

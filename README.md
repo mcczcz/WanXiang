@@ -51,6 +51,7 @@
 | `pistonControl` | 自定义方块推拉规则及实体活塞免疫 | `enable=false` |
 | `mobEffectBlocker` | 阻止特定状态效果触发伤害/死亡附带行为 | `enable=false` |
 | `fastLeafDecay` | 原木或树叶破坏后加速清理无支撑树叶 | `enable=false` |
+| `redstoneTickControl` | 按维度设置每秒红石更新次数，支持小数及暂停 | `enable=false` |
 | `scheduledCommands` | 按 6 段 Cron 表达式定时执行服务端命令 | `enable=false` |
 | `commandPermissions` | 覆盖命令注册时的权限等级 | `enable=false` |
 | `serverPong` | 修改服务器列表中的 MOTD 和人数显示 | `enable=false` |
@@ -64,6 +65,19 @@
 ## 常用配置示例
 
 完整带注释配置请参考根目录的 [`config.jsonc`](config.jsonc)。以下为常见场景的精简配置片段（只需保留需要修改的字段，缺失字段会自动补全默认值）：
+
+红石刻限制示例（主世界每秒 5 次，下界每秒 2.5 次，末地暂停）：
+```json
+"redstoneTickControl": {
+    "enable": true,
+    "dimensions": {
+        "0": 5,
+        "1": 2.5,
+        "2": 0
+    }
+}
+```
+维度 ID：`0` 主世界、`1` 下界、`2` 末地，也支持自定义维度 ID。数值为每秒红石更新次数，支持小数；`0` 暂停，`-1` 或未配置的维度保持原版。
 
 聊天格式配置示例：
 ```json

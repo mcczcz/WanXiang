@@ -52,6 +52,12 @@ struct FastLeafDecayConfig {
     int maxDelayTicks = 8;
 };
 
+struct RedstoneTickControlConfig {
+    bool enable = false;
+    // 维度 ID -> 每秒红石更新次数；-1 为原版，0 为暂停，正数支持小数。
+    std::map<std::string, double> dimensions{{"0", -1.0}, {"1", -1.0}, {"2", -1.0}};
+};
+
 struct UnloadedEntitiesCleanerConfig {
     bool                     enable                      = false;
     std::vector<std::string> entityTypeNamesToClean      = {};
@@ -275,6 +281,7 @@ struct Config {
     XpOrbMergeConfig              xpOrbMerge{};
     MobEffectBlockerConfig        mobEffectBlocker{};
     FastLeafDecayConfig           fastLeafDecay{};
+    RedstoneTickControlConfig     redstoneTickControl{};
     UnloadedEntitiesCleanerConfig unloadedEntitiesCleaner{};
     ScheduledCommandsConfig       scheduledCommands{};
     CommandPermissionsConfig      commandPermissions{};
