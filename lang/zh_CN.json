@@ -212,5 +212,14 @@
     "vanish.disabled": "隐身功能当前不可用。",
     "vanish.on": "已开启隐身。",
     "vanish.off": "已关闭隐身。",
-    "vanish.enable_failed": "隐身功能启用失败。"
+    "vanish.enable_failed": "隐身功能启用失败。",
+    "unlimited_command_blocks.enable_failed": "去除 fill/clone 方块数量上限功能启用失败。",
+    "unlimited_command_blocks.unsupported": "fill/clone 数量检查特征不匹配或已被修改，未应用补丁。",
+    "unlimited_command_blocks.patch_error": "应用 fill/clone 数量补丁时发生错误：{}",
+    "unlimited_command_blocks.restore_failed": "无法恢复 fill/clone 数量检查：补丁位置已被其他模组修改或写入失败。",
+    "unrestricted_enchant.enable_failed": "解除 enchant 限制功能启用失败。",
+    "unrestricted_enchant.unsupported": "enchant 函数入口特征未唯一匹配或已被修改，未安装 Hook。",
+    "unrestricted_enchant.name": "自由附魔",
+    "unlimited_command_blocks.name": "命令方块数量上限解除",
+    "unrestricted_enchant.invalid_level": "附魔等级必须在 1–{} 之间；超出物品存储范围会导致等级溢出。"
 }

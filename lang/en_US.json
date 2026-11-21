@@ -212,5 +212,14 @@
     "vanish.disabled": "Vanish is currently unavailable.",
     "vanish.on": "Vanish enabled.",
     "vanish.off": "Vanish disabled.",
-    "vanish.enable_failed": "Failed to enable vanish."
+    "vanish.enable_failed": "Failed to enable vanish.",
+    "unlimited_command_blocks.enable_failed": "Failed to remove the fill/clone block count limits.",
+    "unlimited_command_blocks.unsupported": "The fill/clone volume check signatures differ or have been modified; no patch was applied.",
+    "unlimited_command_blocks.patch_error": "Error applying the fill/clone volume patches: {}",
+    "unlimited_command_blocks.restore_failed": "Cannot restore the fill/clone volume checks: another mod changed the patch site or the write failed.",
+    "unrestricted_enchant.enable_failed": "Failed to enable unrestricted enchant commands.",
+    "unrestricted_enchant.unsupported": "The enchant entry signature is missing, ambiguous or modified; no hook was installed.",
+    "unrestricted_enchant.name": "Unrestricted enchant commands",
+    "unlimited_command_blocks.name": "Unlimited command blocks",
+    "unrestricted_enchant.invalid_level": "Enchantment level must be between 1 and {}; higher values overflow item storage."
 }

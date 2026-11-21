@@ -277,6 +277,8 @@ struct Config {
     bool                          cleanUnknownBlocksEnable = false;
     bool                          hideOpPermissionEnable   = true;
     bool                          clientAchievementsEnable = false;
+    bool                          unlimitedCommandBlocksEnable = false;
+    bool                          unrestrictedEnchantEnable = false;
     DroppedItemLifetimeConfig     droppedItemLifetime{};
     XpOrbMergeConfig              xpOrbMerge{};
     MobEffectBlockerConfig        mobEffectBlocker{};

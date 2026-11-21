@@ -36,6 +36,8 @@
 | `cleanUnknownBlocksEnable` | 区块加载时清理未知方块（不可恢复） | `false` |
 | `hideOpPermissionEnable` | 对非 OP 隐藏客户端管理员权限显示 | `true` |
 | `clientAchievementsEnable` | 向客户端隐藏作弊状态以允许成就判定 | `false` |
+| `unlimitedCommandBlocksEnable` | 去除 `/fill`、`/clone` 的方块数量上限 | `false` |
+| `unrestrictedEnchantEnable` | `/enchant` 支持任意非空物品、冲突附魔和超原版等级 | `false` |
 
 ### 进阶模块
 

@@ -4,6 +4,8 @@
 #include "core/i18n/I18n.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "features/commands/AbilityCommand.h"
+#include "features/commands/UnlimitedCommandBlocks.h"
+#include "features/commands/UnrestrictedEnchant.h"
 #include "features/player/AutoFishing.h"
 #include "features/player/AutoReplenish.h"
 #include "features/player/ContainerPreview.h"
@@ -98,6 +100,8 @@ constexpr Feature runtimeFeatures[] = {
     WANXIANG_FEATURE(vanish),
     WANXIANG_FEATURE(auto_replenish),
     WANXIANG_FEATURE(container_preview),
+    WANXIANG_FEATURE(unlimited_command_blocks),
+    WANXIANG_FEATURE(unrestricted_enchant),
     WANXIANG_FEATURE(client_achievements),
     WANXIANG_FEATURE(chat_formatter),
 };
@@ -108,6 +112,8 @@ constexpr Feature reloadFeatures[] = {
     WANXIANG_FEATURE(auto_fishing),
     WANXIANG_FEATURE(auto_replenish),
     WANXIANG_FEATURE(container_preview),
+    WANXIANG_FEATURE(unlimited_command_blocks),
+    WANXIANG_FEATURE(unrestricted_enchant),
     WANXIANG_FEATURE(xp_orb_merge),
     WANXIANG_FEATURE(mob_effect_blocker),
     WANXIANG_FEATURE(fast_leaf_decay),
